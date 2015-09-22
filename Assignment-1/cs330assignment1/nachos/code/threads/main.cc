@@ -78,7 +78,7 @@ main(int argc, char **argv)
 {
     int argCount;			// the number of arguments 
 					// for a particular command
-    processID=10;
+    processID=0;
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
     
