@@ -220,8 +220,8 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == syscall_NumInstr)){
-      Statistics timeObj = *stats;
-      machine->WriteRegister(2,timeObj.totalTicks);
+      Statistics instrObj = *stats;
+      machine->WriteRegister(2,instrObj.userTicks);
       // Advance program counters.
       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
