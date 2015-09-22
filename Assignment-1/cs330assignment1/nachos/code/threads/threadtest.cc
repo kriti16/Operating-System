@@ -26,8 +26,8 @@ SimpleThread(int which)
 {
     int num;
     int tmp=currentThread->getPID();
-    printf("*** thread %d had pid %d\n", which, tmp);
-
+    printf("*** thread %d has pid %d\n", which, tmp);
+    printf("*** thread %d has ppid %d\n", which, currentThread->getPPID());
     for (num = 0; num < 5; num++) {
 	printf("*** thread %d looped %d times\n", which, num);
         currentThread->YieldCPU();
