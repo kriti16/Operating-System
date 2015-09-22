@@ -118,7 +118,7 @@ class NachOSThread {
     int pid, ppid;			// My pid and my parent's pid
   public:
     int getPID(){ return pid; }
-
+    int getPPID(){return ppid; }
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
 // one for its state while executing user code, one for its state 
