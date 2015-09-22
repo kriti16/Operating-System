@@ -219,6 +219,14 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    else if ((which == SyscallException) && (type == syscall_NumInstr)){
+      Statistics timeObj = *stats;
+      machine->WriteRegister(2,timeObj.totalTicks);
+      // Advance program counters.
+      machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+      machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+      machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
     else if ((which == SyscallException) && (type == syscall_Yield)) {
        currentThread->YieldCPU();
        //Advance program counters.
