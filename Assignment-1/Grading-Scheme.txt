@@ -1,0 +1,21 @@
+Points allocated for correct implementation of each system call are listed below.
+
+GetReg          :   3 points
+GetPA           :   5 points
+GetPID          :   3 points
+GetPPID         :   3 points
+GetNumInstr     :   3 points
+Time            :   3 points
+Yield           :   3 points
+Sleep           :  10 points
+Exec            :  10 points
+Exit            :  15 points
+Join            :  15 points
+Fork            :  20 points
+-----------------------------
+TOTAL           :  93 points
+README          :   7 points
+-----------------------------
+TOTAL           : 100 points
+
+Your points will be scaled down by a factor of 10 so that the contribution to the aggregate is ten points.
