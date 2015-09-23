@@ -234,7 +234,19 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
-	else {
+    else if ((which == SyscallException) && (type == syscall_Sleep)) {
+       int ticks = machine->ReadRegister(4);
+       if(ticks==0){
+       		currentThread->YieldCPU();
+       }
+       else{
+		
+       }
+       //Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
     }
