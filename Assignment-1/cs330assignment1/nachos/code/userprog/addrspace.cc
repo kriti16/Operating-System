@@ -20,6 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 
+int MainMemoryPage;
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the 
