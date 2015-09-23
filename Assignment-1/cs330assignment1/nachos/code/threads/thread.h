@@ -43,6 +43,7 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
+#include "list.h"
 #endif
 
 // CPU register state to be saved on context switch.  
@@ -61,7 +62,8 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
 // external function, dummy routine whose sole job is to call NachOSThread::Print
 extern void ThreadPrint(int arg);	 
-extern int processID;
+extern int processID; 
+
 // Tie following class defines a "thread control block" -- which
 // represents a single thread of execution.
 //

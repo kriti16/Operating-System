@@ -53,7 +53,7 @@ class List {
 					// on the list
     bool IsEmpty();		// is the list empty? 
     
-
+    ListElement * getHead();    // To get header of the list
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int sortKey);	// Put item into list
     void *SortedRemove(int *keyPtr); 	  	// Remove first item from list
@@ -62,5 +62,7 @@ class List {
     ListElement *first;  	// Head of the list, NULL if list is empty
     ListElement *last;		// Last element of list
 };
+
+extern List mySleepList; // The Global list of sleeping processes 
 
 #endif // LIST_H
