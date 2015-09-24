@@ -28,6 +28,8 @@
 #include "synch.h"
 #include "thread.h"
 #include "list.h"
+#include "addrspace.h"
+#include "progtest.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -252,6 +254,20 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    else if ((which == SyscallException) && (type == syscall_Exec)) {
+       char* execname;
+       execname = new char[15];
+       int i=0;
+       vaddr = machine->ReadRegister(4);
+       machine->ReadMem(vaddr, 1, &memval);
+       while ((*(char*)&memval)!='\0') {
+          execname[i] = *(char*)&memval;
+          i++;
+          vaddr++;
+          machine->ReadMem(vaddr, 1, &memval);
+       }
+       StartProcess(execname);
+   }   
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
