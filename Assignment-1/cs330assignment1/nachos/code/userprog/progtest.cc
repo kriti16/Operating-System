@@ -13,6 +13,7 @@
 #include "console.h"
 #include "addrspace.h"
 #include "synch.h"
+#include "progtest.h"
 
 //----------------------------------------------------------------------
 // StartProcess
