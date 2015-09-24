@@ -24,6 +24,7 @@
 					// execution stack, for detecting 
 					// stack overflows
 int processID;
+int liveThreads;
 //----------------------------------------------------------------------
 // NachOSThread::NachOSThread
 // 	Initialize a thread control block, so that we can then call
@@ -33,10 +34,12 @@ int processID;
 //----------------------------------------------------------------------
 NachOSThread::NachOSThread(char* threadName)
 {
+    liveThreads++;
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     pid = processID;
+    //printf("%d\n",pid);
     processID++;
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
@@ -92,7 +95,14 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
 	  name, (int) func, arg);
     
     ThreadStackAllocate(func, arg);
-    this->ppid = currentThread->getPID();
+
+    if(this->pid!=0){
+        this->ppid = currentThread->getPID();
+        this->Parent = currentThread->getParent();
+        specialItem* node=new specialItem(this,this->getPID());
+        ListElement * pt = new ListElement(node, -1);
+        this->Parent->children.SortedInsert((void *)pt->item,pt->key);
+    }
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
 					// are disabled!
@@ -148,7 +158,7 @@ NachOSThread::FinishThread ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
-    
+    liveThreads--;
     threadToBeDestroyed = currentThread;
     PutThreadToSleep();					// invokes SWITCH
     // not reached
@@ -220,8 +230,12 @@ NachOSThread::PutThreadToSleep ()
     DEBUG('t', "Sleeping thread \"%s\"\n", getName());
 
     status = BLOCKED;
-    while ((nextThread = scheduler->FindNextToRun()) == NULL)
-	interrupt->Idle();	// no one to run, wait for an interrupt
+
+    while ((nextThread = scheduler->FindNextToRun()) == NULL){
+        if(liveThreads==0)
+            interrupt->Halt();
+	    interrupt->Idle();	// no one to run, wait for an interrupt
+    }
         
     scheduler->Run(nextThread); // returns when we've been signalled
 }

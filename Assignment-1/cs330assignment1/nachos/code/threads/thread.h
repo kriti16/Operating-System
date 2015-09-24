@@ -62,7 +62,7 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
 // external function, dummy routine whose sole job is to call NachOSThread::Print
 extern void ThreadPrint(int arg);	 
-extern int processID; 
+extern int processID, liveThreads; 
 
 // Tie following class defines a "thread control block" -- which
 // represents a single thread of execution.
@@ -120,9 +120,15 @@ class NachOSThread {
 					// Used internally by ThreadFork()
 
     int pid, ppid;			// My pid and my parent's pid
+    NachOSThread * Parent;
+
   public:
+    List children;
     int getPID(){ return pid; }
     int getPPID(){return ppid; }
+    void setPPID(int val) { ppid = val;}
+    NachOSThread * getParent() { return Parent;}
+    void setParent(NachOSThread* P) {Parent = P;}
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
 // one for its state while executing user code, one for its state 
@@ -149,5 +155,15 @@ void _ThreadRoot();
 // Stop running oldThread and start running newThread
 void _SWITCH(NachOSThread *oldThread, NachOSThread *newThread);
 }
+
+class specialItem{
+public:
+    NachOSThread* ptThread;
+    int storedPID;
+    specialItem (NachOSThread* p,int a){
+        ptThread=p;
+        storedPID=a;
+    }
+};
 
 #endif // THREAD_H

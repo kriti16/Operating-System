@@ -255,6 +255,7 @@ ExceptionHandler(ExceptionType which)
     }
     else if ((which == SyscallException) && (type == syscall_Sleep)) {
        int ticks = machine->ReadRegister(4);
+       printf("%d is sleeping\n",currentThread->getPID());
        if(ticks==0){
        		currentThread->YieldCPU();
        }
@@ -293,7 +294,7 @@ ExceptionHandler(ExceptionType which)
         machine->mainMemory[MainMemoryPage*PageSize+i]=machine->mainMemory[S+i];
        }
        MainMemoryPage+=(R/PageSize);
-       printf("MMP:%d\n",MainMemoryPage);
+       //printf("MMP:%d\n",MainMemoryPage);
        newThread->SaveUserState();
        newThread->userRegisters[2]=0;
        newThread->userRegisters[PrevPCReg]=newThread->userRegisters[PCReg];
@@ -305,6 +306,17 @@ ExceptionHandler(ExceptionType which)
        newThread->space=a;
        newThread->callThreadStackAllocate(fkernel,0);
        interrupt->SetLevel(IntOff);
+
+        if(newThread->getPID()!=0){
+          newThread->setPPID(currentThread->getPID());
+          newThread->setParent(currentThread);
+          specialItem* node=new specialItem(newThread,newThread->getPID());
+          ListElement * pt = new ListElement(node, -1); 
+          //printf("newThreadPID=%d\n",newThread->getPID()); 
+          //printf("doubtdd%d\n",((NachOSThread*)pt->item)->getPID());      
+          currentThread->children.SortedInsert((void *)pt->item,pt->key);
+          //printf("doubt:%d\n",((NachOSThread*)(((ListElement *)currentThread->children.getHead())->item))->getPID());
+        }
        scheduler->ReadyToRun(newThread); 
        interrupt->Enable();
        
@@ -312,6 +324,76 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+     }
+     else if ((which == SyscallException) && (type == syscall_Exit)) {
+      // if(status==0){
+         printf("Cleaning Up thread:%d\n",currentThread->getPID());
+         if(currentThread->getPID()!=0){
+           ListElement* ptr=currentThread->getParent()->children.getHead();
+           while(ptr!=NULL){
+             if(((specialItem*)ptr->item)->storedPID==currentThread->getPID()){
+              ptr->key=0;
+              //printf("Reached:%d\n",((NachOSThread*)ptr->item)->getPID());
+            }
+            ptr=ptr->next;
+           }
+           interrupt->SetLevel(IntOff);
+           scheduler->ReadyToRun(currentThread->getParent()); 
+           interrupt->Enable();
+           //printf("Reached:%d\n",((NachOSThread*)ptr->item)->getPID());
+         }
+
+         // printf("####Cleaning Up thread:%d\n",currentThread->getPID());
+         currentThread->FinishThread();
+         machine->WriteRegister(2,0);
+          //Advance program counters.
+         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+       //}
+     }
+     else if ((which == SyscallException) && (type == syscall_Join)) {
+         int passedID=machine->ReadRegister(4);
+         bool isChild=false;
+         int exitCodeChild=-1;
+         ListElement * pt = currentThread->children.getHead();
+         while(pt!=NULL){
+            //printf("passedID=%d childID=%d\n",passedID,((NachOSThread*)(pt->item))->getPID());fflush(stdout);
+            if(((specialItem*)pt->item)->storedPID==passedID){
+              //printf("passedID=%d childID=%d\n",passedID,((NachOSThread*)(pt->item))->getPID());
+              isChild=true;
+              exitCodeChild=(int)(ListElement*)pt->key;
+              //printf("EXIT CODE:%d\n",exitCodeChild);
+              break;
+            }
+            pt=pt->next;
+         }
+        // printf("passedID=%d\n",passedID);
+         if(isChild==false){
+           machine->WriteRegister(2,-1);
+           printf("Can't join with non-child\n");
+            //Advance program counters.
+         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+         }
+         else{
+          if(exitCodeChild==-1){
+            interrupt->SetLevel(IntOff);
+            printf("Parent sleeping\n");
+            currentThread->PutThreadToSleep();
+            interrupt->Enable();
+          }
+          else{
+            printf("Child exited => join successful\n");
+            machine->WriteRegister(2,exitCodeChild);
+             //Advance program counters.
+         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+          }
+         }
+  
      }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);

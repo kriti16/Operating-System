@@ -81,6 +81,7 @@ main(int argc, char **argv)
 					// for a particular command
     processID=0;
 	MainMemoryPage = 0;
+	liveThreads=0;
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
     

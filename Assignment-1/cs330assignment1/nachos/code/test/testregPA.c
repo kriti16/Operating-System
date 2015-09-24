@@ -17,13 +17,13 @@ main()
     system_PrintChar('\n');
     for (i=0; i<SIZE; i++) array[i] = i;
     system_PrintString("We are currently at PC: ");
-    system_PrintInt(system_GetReg(8));
+    system_PrintInt(system_GetReg(34));
     system_PrintChar('\n');
     for (i=0; i<SIZE; i++) sum += array[i];
     system_PrintString("Total sum: ");
     system_PrintInt(sum);
     system_PrintChar('\n');
     system_Sleep(2000);
-    //system_Exit(0);
+    system_Exit(0);
     return 0;
 }
