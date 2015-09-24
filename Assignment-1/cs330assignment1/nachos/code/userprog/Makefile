@@ -327,7 +327,8 @@ exception.o: ../userprog/exception.cc ../threads/copyright.h \
   ../threads/list.h ../threads/scheduler.h ../machine/interrupt.h \
   ../threads/list.h ../machine/stats.h ../machine/timer.h \
   ../filesys/filesys.h ../userprog/syscall.h ../machine/console.h \
-  ../threads/synch.h ../threads/thread.h ../threads/list.h
+  ../threads/synch.h ../threads/thread.h ../threads/list.h \
+  ../userprog/addrspace.h ../userprog/progtest.h
 progtest.o: ../userprog/progtest.cc ../threads/copyright.h \
   ../threads/system.h ../threads/copyright.h ../threads/utility.h \
   ../machine/sysdep.h ../threads/copyright.h /usr/include/stdio.h \
@@ -347,7 +348,7 @@ progtest.o: ../userprog/progtest.cc ../threads/copyright.h \
   ../threads/list.h ../threads/scheduler.h ../machine/interrupt.h \
   ../threads/list.h ../machine/stats.h ../machine/timer.h \
   ../filesys/filesys.h ../machine/console.h ../userprog/addrspace.h \
-  ../threads/synch.h
+  ../threads/synch.h ../userprog/progtest.h
 console.o: ../machine/console.cc ../threads/copyright.h \
   ../machine/console.h ../threads/utility.h ../threads/copyright.h \
   ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \

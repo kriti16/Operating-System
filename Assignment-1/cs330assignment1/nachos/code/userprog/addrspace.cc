@@ -185,3 +185,17 @@ void AddrSpace::RestoreState()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }
+
+int AddrSpace::getNumPages()
+{
+    return numPages;
+}
+
+AddrSpace::AddrSpace(AddrSpace* A){
+    numPages = A->numPages;
+    pageTable = new TranslationEntry[numPages];
+    pageTable = A->pageTable;
+    for(int i=0; i<numPages; i++){
+        pageTable[i].physicalPage += numPages;
+    }
+}

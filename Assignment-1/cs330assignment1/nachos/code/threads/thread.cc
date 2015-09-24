@@ -319,3 +319,7 @@ NachOSThread::RestoreUserState()
 	machine->WriteRegister(i, userRegisters[i]);
 }
 #endif
+void NachOSThread::callThreadStackAllocate(VoidFunctionPtr func, int arg)
+{
+    ThreadStackAllocate(func,arg);    
+}
