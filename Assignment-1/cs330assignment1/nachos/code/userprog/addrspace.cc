@@ -194,8 +194,14 @@ int AddrSpace::getNumPages()
 AddrSpace::AddrSpace(AddrSpace* A){
     numPages = A->numPages;
     pageTable = new TranslationEntry[numPages];
-    pageTable = A->pageTable;
-    for(int i=0; i<numPages; i++){
-        pageTable[i].physicalPage += numPages;
+    for (int i = 0; i < numPages; i++) {
+    pageTable[i].virtualPage = A->pageTable[i].virtualPage;   // now, virtual page # = Next correct physcial Page number
+    pageTable[i].physicalPage = A->pageTable[i].physicalPage+numPages;
+    pageTable[i].valid = A->pageTable[i].valid;
+    pageTable[i].use = A->pageTable[i].use;
+    pageTable[i].dirty = A->pageTable[i].dirty;
+    pageTable[i].readOnly = A->pageTable[i].readOnly;  // if the code segment was entirely on 
+                    // a separate page, we could set its 
+                    // pages to be read-only
     }
 }

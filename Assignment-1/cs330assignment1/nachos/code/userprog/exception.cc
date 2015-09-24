@@ -286,18 +286,19 @@ ExceptionHandler(ExceptionType which)
    }
     else if ((which == SyscallException) && (type == syscall_Fork)) {
        NachOSThread* newThread = new NachOSThread ("Child");
+
        int S= machine->pageTable[0].physicalPage*PageSize;
        int R= currentThread->space->getNumPages() * PageSize;
        for(int i=0;i<R;i++){
-        machine->mainMemory[MainMemoryPage+i]=machine->mainMemory[S+i];
+        machine->mainMemory[MainMemoryPage*PageSize+i]=machine->mainMemory[S+i];
        }
-       //printf("%d\n",MainMemoryPage );
        MainMemoryPage+=(R/PageSize);
+       printf("MMP:%d\n",MainMemoryPage);
        newThread->SaveUserState();
        newThread->userRegisters[2]=0;
-       newThread->userRegisters[PrevPCReg]=newThread->userRegisters[PCReg]+R;
-       newThread->userRegisters[PCReg]=newThread->userRegisters[NextPCReg]+R;
-       newThread->userRegisters[NextPCReg]+=(4+R);
+       newThread->userRegisters[PrevPCReg]=newThread->userRegisters[PCReg];
+       newThread->userRegisters[PCReg]=newThread->userRegisters[NextPCReg];
+       newThread->userRegisters[NextPCReg]+=4;
  
        machine->WriteRegister(2, newThread->getPID());
        AddrSpace* a=new AddrSpace(currentThread->space);
@@ -306,7 +307,6 @@ ExceptionHandler(ExceptionType which)
        interrupt->SetLevel(IntOff);
        scheduler->ReadyToRun(newThread); 
        interrupt->Enable();
-       printf("PC:%d",machine->ReadRegister(34));   
        
        //Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
