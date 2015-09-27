@@ -1,0 +1,67 @@
+Assignment 1 of CS330 by Group 37
+
+Group Members -
+(1) Drishti Wali - 13266
+(2) Kriti Joshi - 13358
+(3) M.Arunothia - 13378
+
+The following syscalls were implemented in NachOS environment as a part of the assignment.
+
+The implementation code of each syscall was written in exception.cc under the appropriate syscall-exception and syscall-type.
+
+(1) system_GetReg()
+
+The input argument is read from the register number 4. This gives us the register number whose contents are to be returned.
+The contents of the given register is read using the Read() function defined under the machine class. 
+The contents are written to the register number 2 using the Write() function defined under the machine class.
+The program counter is moved forward to the next instruction.
+
+(2) system_GetPA()
+ 
+The input argument is read from the register number 4. This gives us the virtual address whose physical address is to be returned.
+vpn = virtual page number = (virtual address / PageSize ) was estimated.
+The three failure cases as mentioned in the syscall description were checked for.
+The physical address was obtained by the mapping available under 'PageTable' defined under machine.h, very similar to that done in Translate() function in translate.cc. The program counter is moved forward to the next instruction.
+
+(3) system_GetPID()
+
+A global variable named processID is initialised to 0. Every newly created process is assigned a unique PID by using this processID. This assigning is done in the default constructor of the NachOSThread class. ProcessID is updated by incrementing it with every new process creation. As the 'pid' data member of NachOSThread class is private, we define and use a member function getPID(). The currentThread->getPID() value is written to register number 2 and the program counter is moved forward to the next instruction.
+
+(4) syscall_Time()
+
+Total ticks are found using the Statistics object pointer *stats that is defined in system.cc. stats->totalTicks is written to register number 2 and the program counter is moved forward to the next instruction.
+
+(5) syscall_GetPPID()
+
+In the functions ThreadFork(), syscall_Fork() and syscall_Exec(), the newly created process's ppid is assigned to be the calling process's pid. As the 'ppid' data member of NachOSThread class is private, we define and use a member function getPPID(). The currentThread->getPPID() value is written to register number 2 and the program counter is moved forward to the next instruction.
+
+(6) syscall_Sleep()
+
+We maintain a global List named 'mySleepList' that keeps track of all the currently sleeping processes.  
+The input argument is read from the register number 4. This gives us the number of ticks for which the process is to sleep. 
+If number of ticks == 0, we just call currentThread->YieldCPU().
+Otherwise, we estimate wakeTime( = number of ticks + stats->totalTicks) of the process. We do a sortedInsert of a new ListElement(currentThread, wakeTime) into mySleepList. In the TimerInterruptHandler() we move all those processes whose (wakeTime <= stats->totalTick) to the ready queue using ReadyToRun() function and delete these from mySleepList. 
+The program counter is moved forward to the next instruction.
+
+(7) syscall_Yield()
+
+currentThread->YieldCPU() is called and the program counter is moved forward to the next instruction.
+
+(8) syscall_NumInstr()
+
+
+
+(9) syscall_Exec()
+
+(10) syscall_Fork()
+
+(11) syscall_Join()
+
+(12) syscall_Exit()
+
+
+
+
+
+
+
