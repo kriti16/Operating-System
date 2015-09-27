@@ -53,14 +53,21 @@ A new public data member 'numInstructions' is added to the class NachOSThread. '
 
 (9) syscall_Exec()
 
-
+The syscall calls the StartProcess declared in progtest.c. The addrspace constructor was modified to allow accurate mapping of the virtual page of the pageTable to the corresponding new unallocated page in the MainMemory. This was implemented using a global variable MainMemoryPage which is incremented whenever a virtual page points to the same. The corresponding initial mainMemory address in functions bzero and corresponding physical address corresponding to the virtual address in executable->ReadAt. Thus, the new thread would have space not overwritten on old.
 
 (10) syscall_Fork()
-
+The memory from the calling process is copied to the next available memory in MainMemory as decribed in assignment1.txt. The registers of the forked process are correctly assigned, (register 2 gets 0 for the child, child-PID for the parent and the PrevPC, PC and NextPC are incremented as always). A new addrspace is allocated similar to the exec call where the physical page in the child page table is shifted from the parent pageTable physical page by the number of pages in the parent. A stack is allocated for the kernel mode using ThreadStackAllocate which calls the function fkernel which deletes if any thread had to be deleted and then runs the thread. This thread is added to the children of this thread and the new thread is scheduled to run.  
 
 (11) syscall_Join()
 
+PassedID is read from the register number 4. We traverse the data member 'children' of the currentThread to find out whether the passedID is a valid child pid. We also check what is the exit code of that corresponding child. 
+If the passedID was invalid, we write -1 to the register number 2 and return by moving forward the program counter. 
+If the exitCodeChild is 0 then it means the child has already exited and hence, we write 0 to the register number 2 and return by moving forward the program counter.
+If the exitCodeChild is -1, we put the parent to sleep as now it has to wait for the child to exit. Here, the program counter is not incremented. So whenever the parent is woken up, it will again do a system_Join to check for the exitCodeChild of that particular child.
+
 (12) syscall_Exit()
+
+First we check whether the parent of the exit calling process (other than process main) is sleeping due to Join for any child. If yes then we wake up the parent by moving it to the ready queue. All children of an exiting process is made to have a ppid = -1 and its parent pointer pointing to NULL. We call FinishThread() on the current thread. We maintain a global variable liveThreads that keeps track of the number of threads currently live on the system. If this number is non-zero then the current thread that is to be deleted (put to sleep by FinishThread()) will actually get deleted by the next remaining live threads. If liveThreads == 0, this thread being the last should be deleted somehow. This is done by calling interrupt->Halt() in FinishThread(), which inturn calls the Cleanup() function for this final cleaning.
 
 
 
