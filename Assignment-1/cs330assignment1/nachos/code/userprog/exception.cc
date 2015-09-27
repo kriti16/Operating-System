@@ -1,18 +1,18 @@
 // exception.cc 
-//	Entry point into the Nachos kernel from user programs.
-//	There are two kinds of things that can cause control to
-//	transfer back to here from user code:
+//  Entry point into the Nachos kernel from user programs.
+//  There are two kinds of things that can cause control to
+//  transfer back to here from user code:
 //
-//	syscall -- The user code explicitly requests to call a procedure
-//	in the Nachos kernel.  Right now, the only function we support is
-//	"Halt".
+//  syscall -- The user code explicitly requests to call a procedure
+//  in the Nachos kernel.  Right now, the only function we support is
+//  "Halt".
 //
-//	exceptions -- The user code does something that the CPU can't handle.
-//	For instance, accessing memory that doesn't exist, arithmetic errors,
-//	etc.  
+//  exceptions -- The user code does something that the CPU can't handle.
+//  For instance, accessing memory that doesn't exist, arithmetic errors,
+//  etc.  
 //
-//	Interrupts (which can also cause control to transfer from user
-//	code into the Nachos kernel) are handled elsewhere.
+//  Interrupts (which can also cause control to transfer from user
+//  code into the Nachos kernel) are handled elsewhere.
 //
 // For now, this only handles the Halt() system call.
 // Everything else core dumps.
@@ -33,25 +33,25 @@
 
 //----------------------------------------------------------------------
 // ExceptionHandler
-// 	Entry point into the Nachos kernel.  Called when a user program
-//	is executing, and either does a syscall, or generates an addressing
-//	or arithmetic exception.
+//  Entry point into the Nachos kernel.  Called when a user program
+//  is executing, and either does a syscall, or generates an addressing
+//  or arithmetic exception.
 //
-// 	For system calls, the following is the calling convention:
+//  For system calls, the following is the calling convention:
 //
-// 	system call code -- r2
-//		arg1 -- r4
-//		arg2 -- r5
-//		arg3 -- r6
-//		arg4 -- r7
+//  system call code -- r2
+//    arg1 -- r4
+//    arg2 -- r5
+//    arg3 -- r6
+//    arg4 -- r7
 //
-//	The result of the system call, if any, must be put back into r2. 
+//  The result of the system call, if any, must be put back into r2. 
 //
 // And don't forget to increment the pc before returning. (Or else you'll
 // loop making the same system call forever!
 //
-//	"which" is the kind of exception.  The list of possible exceptions 
-//	are in machine.h.
+//  "which" is the kind of exception.  The list of possible exceptions 
+//  are in machine.h.
 //----------------------------------------------------------------------
 static Semaphore *readAvail;
 static Semaphore *writeDone;
@@ -104,18 +104,18 @@ ExceptionHandler(ExceptionType which)
     Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
 
     if ((which == SyscallException) && (type == syscall_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
+  DEBUG('a', "Shutdown, initiated by user program.\n");
+    interrupt->Halt();
     }
     else if ((which == SyscallException) && (type == syscall_PrintInt)) {
        printval = machine->ReadRegister(4);
        if (printval == 0) {
-	  writeDone->P() ;
+    writeDone->P() ;
           console->PutChar('0');
        }
        else {
           if (printval < 0) {
-	     writeDone->P() ;
+       writeDone->P() ;
              console->PutChar('-');
              printval = -printval;
           }
@@ -127,7 +127,7 @@ ExceptionHandler(ExceptionType which)
           }
           exp = exp/10;
           while (exp > 0) {
-	     writeDone->P() ;
+       writeDone->P() ;
              console->PutChar('0'+(printval/exp));
              printval = printval % exp;
              exp = exp/10;
@@ -139,7 +139,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == syscall_PrintChar)) {
-	writeDone->P() ;
+  writeDone->P() ;
         console->PutChar(machine->ReadRegister(4));   // echo it!
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -150,7 +150,7 @@ ExceptionHandler(ExceptionType which)
        vaddr = machine->ReadRegister(4);
        machine->ReadMem(vaddr, 1, &memval);
        while ((*(char*)&memval) != '\0') {
-	  writeDone->P() ;
+    writeDone->P() ;
           console->PutChar(*(char*)&memval);
           vaddr++;
           machine->ReadMem(vaddr, 1, &memval);
@@ -181,7 +181,7 @@ ExceptionHandler(ExceptionType which)
     else if ((which == SyscallException) && (type == syscall_GetReg)) {
        int mytmp=machine->ReadRegister(4);
        int myval=machine->ReadRegister(mytmp);
-	machine->WriteRegister(2,myval);
+  machine->WriteRegister(2,myval);
        //Advance program counters
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -192,6 +192,7 @@ ExceptionHandler(ExceptionType which)
         int virtAddr = machine->ReadRegister(4);
         // calculate the virtual page number from the virtual address
         unsigned int vpn = (unsigned) virtAddr / PageSize;
+        unsigned int offset= (unsigned) (virtAddr % PageSize);
         int entry;
         if (vpn >= machine->pageTableSize) {
             printf("virtual page # %d too large for page table size %d!\n", virtAddr, machine->pageTableSize);
@@ -208,7 +209,10 @@ ExceptionHandler(ExceptionType which)
                         printf("Phys page # %d too large than NumPhysPages %d!\n", entry, NumPhysPages);
                         machine->WriteRegister(2, -1);
                 }
-                machine->WriteRegister(2, entry);
+                else{
+                    machine->WriteRegister(2, entry*PageSize+offset); 
+                }
+                
         }
 
         // Advance program counters.
@@ -258,14 +262,14 @@ ExceptionHandler(ExceptionType which)
        int ticks = machine->ReadRegister(4);
        printf("%d is sleeping\n",currentThread->getPID());
        if(ticks==0){
-       		currentThread->YieldCPU();
+          currentThread->YieldCPU();
        }
        else{
-		int wakeTime = ticks + stats->totalTicks; 
-		mySleepList.SortedInsert(currentThread, wakeTime);
-		interrupt->SetLevel(IntOff);
-		currentThread->PutThreadToSleep();
-		interrupt->Enable();
+    int wakeTime = ticks + stats->totalTicks; 
+    mySleepList.SortedInsert(currentThread, wakeTime);
+    interrupt->SetLevel(IntOff);
+    currentThread->PutThreadToSleep();
+    interrupt->Enable();
        }
        //Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -295,7 +299,8 @@ ExceptionHandler(ExceptionType which)
         machine->mainMemory[MainMemoryPage*PageSize+i]=machine->mainMemory[S+i];
        }
        MainMemoryPage+=(R/PageSize);
-       //printf("MMP:%d\n",MainMemoryPage);
+       ASSERT(MainMemoryPage<=NumPhysPages);
+
        newThread->SaveUserState();
        newThread->userRegisters[2]=0;
        newThread->userRegisters[PrevPCReg]=newThread->userRegisters[PCReg];
@@ -313,10 +318,8 @@ ExceptionHandler(ExceptionType which)
           newThread->setParent(currentThread);
           specialItem* node=new specialItem(newThread,newThread->getPID());
           ListElement * pt = new ListElement(node, -1); 
-          printf("newThreadPID=%d\n",newThread->getPID()); 
-          printf("doubtdd%d\n",((NachOSThread*)pt->item)->getPID());      
+                
           currentThread->children.SortedInsert((void *)pt->item,pt->key);
-          printf("doubt:%d\n",((NachOSThread*)(((ListElement *)currentThread->children.getHead())->item))->getPID());
         }
        scheduler->ReadyToRun(newThread); 
        interrupt->Enable();
@@ -327,81 +330,85 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
      }
      else if ((which == SyscallException) && (type == syscall_Exit)) {
-      // if(status==0){
          printf("Cleaning Up thread:%d\n",currentThread->getPID());
+
+         interrupt->SetLevel(IntOff);
          if(currentThread->getPID()!=0 && currentThread->getPPID()>=0 ){
-           ListElement* ptr=currentThread->getParent()->children.getHead();
-           while(ptr!=NULL){
-             if(((specialItem*)ptr->item)->storedPID==currentThread->getPID()){
-              ptr->key=0;
-              //printf("Reached:%d\n",((NachOSThread*)ptr->item)->getPID());
+            ListElement* ptr=currentThread->getParent()->children.getHead();
+            while(ptr!=NULL){
+               if(((specialItem*)ptr->item)->storedPID==currentThread->getPID()){
+                  ptr->key=0;
             }
             ptr=ptr->next;
-           }
-           bool parentSleep=false;
-           ListElement* pt=mySleepList.getHead();
-           while(pt!=NULL){
+          }
+          interrupt->Enable();
+
+          bool parentSleep=false;
+          interrupt->SetLevel(IntOff);
+          ListElement* pt=mySleepList.getHead();
+          while(pt!=NULL){
             if(((NachOSThread*)pt->item)->getPID()==currentThread->getPPID()){
               parentSleep=true;
               break;
             }
             pt=pt->next;
            } 
+            interrupt->Enable();
            if(!parentSleep){  
              interrupt->SetLevel(IntOff);
-             scheduler->ReadyToRun(currentThread->getParent()); 
+             scheduler->ReadyToRun(currentThread->getParent());  //still doubtful
              interrupt->Enable();
            }
-           //printf("Reached:%d\n",((NachOSThread*)ptr->item)->getPID());
          }
+
+          interrupt->SetLevel(IntOff);
          ListElement* ptr=currentThread->children.getHead();
          while(ptr!=NULL){
-         	if(ptr->key==-1){
-         		((specialItem*)ptr->item)->ptThread->setPPID(-1);
-         		((specialItem*)ptr->item)->ptThread->setParent(NULL);
-         	}
-         	ptr=ptr->next;
+          if(ptr->key==-1){
+            ((specialItem*)ptr->item)->ptThread->setPPID(-1);
+            ((specialItem*)ptr->item)->ptThread->setParent(NULL);
+          }
+          ptr=ptr->next;
          }
-         // printf("####Cleaning Up thread:%d\n",currentThread->getPID());
+          interrupt->Enable();
+          
          currentThread->FinishThread();
          machine->WriteRegister(2,0);
           //Advance program counters.
          machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
          machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
          machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-       //}
      }
      else if ((which == SyscallException) && (type == syscall_Join)) {
          int passedID=machine->ReadRegister(4);
          bool isChild=false;
          int exitCodeChild=-1;
-         ListElement * pt = currentThread->children.getHead();
+
          interrupt->SetLevel(IntOff);
+         ListElement * pt = currentThread->children.getHead();
          while(pt!=NULL){
-            //printf("passedID=%d childID=%d\n",passedID,((NachOSThread*)(pt->item))->getPID());fflush(stdout);
             if(((specialItem*)pt->item)->storedPID==passedID){
-              //printf("passedID=%d childID=%d\n",passedID,((NachOSThread*)(pt->item))->getPID());
               isChild=true;
               exitCodeChild=(int)(ListElement*)pt->key;
-              //printf("EXIT CODE:%d\n",exitCodeChild);
               break;
             }
             pt=pt->next;
          }
-        // printf("passedID=%d\n",passedID);
+         //interrupt->Enable();
+
          if(isChild==false){
+          interrupt->Enable();
            machine->WriteRegister(2,-1);
            printf("Can't join with non-child\n");
-           interrupt->Enable();
             //Advance program counters.
-         machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-         machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-         machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+           machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+           machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+           machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
          }
          else{
-          if(exitCodeChild==-1){
-            //interrupt->SetLevel(IntOff);//           
+          if(exitCodeChild==-1){           
             printf("Parent sleeping\n");
+            //interrupt->SetLevel(IntOff);
             currentThread->PutThreadToSleep();
             interrupt->Enable();
           }
@@ -415,10 +422,10 @@ ExceptionHandler(ExceptionType which)
          machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
           }
          }
-  
+      
      }
     else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+  printf("Unexpected user mode exception %d %d\n", which, type);
+  ASSERT(FALSE);
     }
 }

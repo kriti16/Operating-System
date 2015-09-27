@@ -40,7 +40,7 @@ NachOSThread::NachOSThread(char* threadName)
     stack = NULL;
     pid = processID;
     numInstructions=0;
-    //printf("%d\n",pid);
+    printf("%d\n",pid);
     processID++;
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
