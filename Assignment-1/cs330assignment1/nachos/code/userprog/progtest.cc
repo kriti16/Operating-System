@@ -26,7 +26,9 @@ StartProcess(char *filename)
 {
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
-
+    currentThread->setPPID(-1);
+    currentThread->setParent(NULL);
+    currentThread->numInstructions=0;
     if (executable == NULL) {
 	printf("Unable to open file %s\n", filename);
 	return;

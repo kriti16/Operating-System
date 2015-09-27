@@ -103,7 +103,7 @@ class NachOSThread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-    
+    int numInstructions;
     void callThreadStackAllocate(VoidFunctionPtr func, int arg);
 
   private:
