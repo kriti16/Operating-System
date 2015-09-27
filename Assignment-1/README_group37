@@ -25,7 +25,7 @@ The physical address was obtained by the mapping available under 'PageTable' def
 
 (3) system_GetPID()
 
-A global variable named processID is initialised to 0. Every newly created process is assigned a unique PID by using this processID. This assigning is done in the default constructor of the NachOSThread class. ProcessID is updated by incrementing it with every new process creation. As the 'pid' data member of NachOSThread class is private, we define and use a member function getPID(). The currentThread->getPID() value is written to register number 2 and the program counter is moved forward to the next instruction.
+A global variable named processID is initialised to 0. Every newly created process is assigned a unique PID by using this processID. This assigning is done in the name argument constructor of the NachOSThread class. ProcessID is updated by incrementing it with every new process creation. As the 'pid' data member of NachOSThread class is private, we define and use a member function getPID(). The currentThread->getPID() value is written to register number 2 and the program counter is moved forward to the next instruction.
 
 (4) syscall_Time()
 
@@ -49,9 +49,11 @@ currentThread->YieldCPU() is called and the program counter is moved forward to 
 
 (8) syscall_NumInstr()
 
-
+A new public data member 'numInstructions' is added to the class NachOSThread. 'numInstructions' is initialised to zero in the name argument constructor of the NachOSThread class. currentThread->numInstructions is incremented in the function OneInstruction(), to keep track of the instruction count of the currentThread. The currentThread->numInstructions value is written to register number 2 and the program counter is moved forward to the next instruction.
 
 (9) syscall_Exec()
+
+
 
 (10) syscall_Fork()
 
