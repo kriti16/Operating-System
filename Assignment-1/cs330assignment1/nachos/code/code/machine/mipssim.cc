@@ -1,15 +1,3 @@
-// mipssim.cc -- simulate a MIPS R2/3000 processor
-//
-//   This code has been adapted from Ousterhout's MIPSSIM package.
-//   Byte ordering is little-endian, so we can be compatible with
-//   DEC RISC systems.
-//
-//   DO NOT CHANGE -- part of the machine emulation
-//
-// Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
-// of liability and disclaimer of warranty provisions.
-
 #include "copyright.h"
 
 #include "machine.h"
@@ -97,11 +85,7 @@ Machine::OneInstruction(Instruction *instr)
     int nextLoadReg = 0; 	
     int nextLoadValue = 0; 	// record delayed load operation, to apply
 				// in the future
-<<<<<<< HEAD
    // currentThread->numInstructions++;
-=======
-   
->>>>>>> c42f83bd11dffe3bfaf4228ad9cb821023b2ddb7
     // Fetch instruction 
     if (!machine->ReadMem(registers[PCReg], 4, &raw))
 	return;			// exception occurred

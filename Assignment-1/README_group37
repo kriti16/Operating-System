@@ -49,7 +49,7 @@ currentThread->YieldCPU() is called and the program counter is moved forward to 
 
 (8) syscall_NumInstr()
 
-A new public data member 'numInstructions' is added to the class NachOSThread. 'numInstructions' is initialised to zero in the name argument constructor of the NachOSThread class. currentThread->numInstructions is incremented in the function OneInstruction(), to keep track of the instruction count of the currentThread. The currentThread->numInstructions value is written to register number 2 and the program counter is moved forward to the next instruction.
+A new public data member 'numInstructions' is added to the class NachOSThread. 'numInstructions' is initialised to zero in the name argument constructor of the NachOSThread class. currentThread->numInstructions is incremented in the function OneTick(), to keep track of the all the instructions executed by the currentThread using the fact that the ticks are incremented when each intruction is executed. The currentThread->numInstructions value is written to register number 2 and the program counter is moved forward to the next instruction.
 
 (9) syscall_Exec()
 

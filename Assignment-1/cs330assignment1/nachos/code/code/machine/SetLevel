@@ -1,0 +1,17 @@
+console.cc:    interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, ConsoleReadInt);
+console.cc:    interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, 
+console.cc:    interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
+disk.cc:    interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+disk.cc:    interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+machine.cc://  ASSERT(interrupt->getStatus() == UserMode);
+machine.cc:    interrupt->setStatus(SystemMode);
+machine.cc:    interrupt->setStatus(UserMode);
+machine.cc:    interrupt->DumpState();
+mipssim.cc:    interrupt->setStatus(UserMode);
+mipssim.cc:	interrupt->OneTick();
+network.cc:    interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+network.cc:    interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+network.cc:    interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
+sysdep.cc:    if (interrupt->getStatus() == IdleMode)
+timer.cc:    interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+timer.cc:    interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
