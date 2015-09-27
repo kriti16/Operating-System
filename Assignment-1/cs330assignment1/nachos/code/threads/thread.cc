@@ -25,6 +25,7 @@
 					// stack overflows
 int processID;
 int liveThreads;
+List joinProcess;
 //----------------------------------------------------------------------
 // NachOSThread::NachOSThread
 // 	Initialize a thread control block, so that we can then call

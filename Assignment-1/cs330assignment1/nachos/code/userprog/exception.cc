@@ -139,7 +139,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == syscall_PrintChar)) {
-  writeDone->P() ;
+        writeDone->P() ;
         console->PutChar(machine->ReadRegister(4));   // echo it!
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -150,7 +150,7 @@ ExceptionHandler(ExceptionType which)
        vaddr = machine->ReadRegister(4);
        machine->ReadMem(vaddr, 1, &memval);
        while ((*(char*)&memval) != '\0') {
-    writeDone->P() ;
+          writeDone->P() ;
           console->PutChar(*(char*)&memval);
           vaddr++;
           machine->ReadMem(vaddr, 1, &memval);
@@ -267,9 +267,9 @@ ExceptionHandler(ExceptionType which)
        else{
     int wakeTime = ticks + stats->totalTicks; 
     mySleepList.SortedInsert(currentThread, wakeTime);
-    interrupt->SetLevel(IntOff);
+    IntStatus oldlevel=interrupt->SetLevel(IntOff);
     currentThread->PutThreadToSleep();
-    interrupt->Enable();
+    interrupt->SetLevel(oldlevel);
        }
        //Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -291,7 +291,11 @@ ExceptionHandler(ExceptionType which)
        StartProcess(execname);
    }
     else if ((which == SyscallException) && (type == syscall_Fork)) {
-       NachOSThread* newThread = new NachOSThread ("Child");
+        char name[2];
+        name[0]='0'+processID;
+        name[1]='\0';
+        //printf("%s",name);
+       NachOSThread* newThread = new NachOSThread ("child");
 
        int S= machine->pageTable[0].physicalPage*PageSize;
        int R= currentThread->space->getNumPages() * PageSize;
@@ -311,18 +315,17 @@ ExceptionHandler(ExceptionType which)
        AddrSpace* a=new AddrSpace(currentThread->space);
        newThread->space=a;
        newThread->callThreadStackAllocate(fkernel,0);
-       interrupt->SetLevel(IntOff);
+       IntStatus oldlevel = interrupt->SetLevel(IntOff);
 
-        if(newThread->getPID()!=0){
-          newThread->setPPID(currentThread->getPID());
-          newThread->setParent(currentThread);
-          specialItem* node=new specialItem(newThread,newThread->getPID());
-          ListElement * pt = new ListElement(node, -1); 
-                
+        newThread->setPPID(currentThread->getPID());
+        newThread->setParent(currentThread);
+        specialItem* node=new specialItem(newThread,newThread->getPID());
+        ListElement * pt = new ListElement(node, -1); 
+  
           currentThread->children.SortedInsert((void *)pt->item,pt->key);
-        }
+
        scheduler->ReadyToRun(newThread); 
-       interrupt->Enable();
+        interrupt->SetLevel(oldlevel);  
        
        //Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -332,7 +335,7 @@ ExceptionHandler(ExceptionType which)
      else if ((which == SyscallException) && (type == syscall_Exit)) {
          printf("Cleaning Up thread:%d\n",currentThread->getPID());
 
-         interrupt->SetLevel(IntOff);
+         IntStatus oldlevel=interrupt->SetLevel(IntOff);
          if(currentThread->getPID()!=0 && currentThread->getPPID()>=0 ){
             ListElement* ptr=currentThread->getParent()->children.getHead();
             while(ptr!=NULL){
@@ -341,27 +344,31 @@ ExceptionHandler(ExceptionType which)
             }
             ptr=ptr->next;
           }
-          interrupt->Enable();
+          interrupt->SetLevel(oldlevel);
 
           bool parentSleep=false;
-          interrupt->SetLevel(IntOff);
-          ListElement* pt=mySleepList.getHead();
-          while(pt!=NULL){
-            if(((NachOSThread*)pt->item)->getPID()==currentThread->getPPID()){
-              parentSleep=true;
-              break;
-            }
-            pt=pt->next;
-           } 
-            interrupt->Enable();
-           if(!parentSleep){  
-             interrupt->SetLevel(IntOff);
-             scheduler->ReadyToRun(currentThread->getParent());  //still doubtful
-             interrupt->Enable();
-           }
+          oldlevel=interrupt->SetLevel(IntOff);
+          int* mypt =new int;
+          *mypt=currentThread->getPPID();
+          ListElement* pt=(ListElement*)joinProcess.SortedRemove(mypt);
+          if(pt!=NULL){
+            scheduler->ReadyToRun(currentThread->getParent());
+          }
+          // if(pt!=NULL)printf("Inonull");
+          // while(pt!=NULL){
+          //   printf("Yollo");
+          //   if(((NachOSThread*)pt->item)==currentThread->getParent()){
+          //     printf("currentThread parent found\n");                 
+          //     scheduler->ReadyToRun(currentThread->getParent());
+          //     break;
+          //   }
+          //   joinProcess.Append(pt->item);
+          //   pt=pt->next;
+          //  } 
+           interrupt->SetLevel(oldlevel);
          }
 
-          interrupt->SetLevel(IntOff);
+          oldlevel = interrupt->SetLevel(IntOff);
          ListElement* ptr=currentThread->children.getHead();
          while(ptr!=NULL){
           if(ptr->key==-1){
@@ -370,7 +377,7 @@ ExceptionHandler(ExceptionType which)
           }
           ptr=ptr->next;
          }
-          interrupt->Enable();
+          interrupt->SetLevel(oldlevel);
           
          currentThread->FinishThread();
          machine->WriteRegister(2,0);
@@ -383,8 +390,8 @@ ExceptionHandler(ExceptionType which)
          int passedID=machine->ReadRegister(4);
          bool isChild=false;
          int exitCodeChild=-1;
-
-         interrupt->SetLevel(IntOff);
+         IntStatus oldlevel; // = interrupt->SetLevel(IntOff);
+         oldlevel = interrupt->SetLevel(IntOff);
          ListElement * pt = currentThread->children.getHead();
          while(pt!=NULL){
             if(((specialItem*)pt->item)->storedPID==passedID){
@@ -394,10 +401,10 @@ ExceptionHandler(ExceptionType which)
             }
             pt=pt->next;
          }
-         //interrupt->Enable();
+         //interrupt->setlevel(oldlevel);
 
          if(isChild==false){
-          interrupt->Enable();
+          //interrupt->SetLevel(oldlevel);
            machine->WriteRegister(2,-1);
            printf("Can't join with non-child\n");
             //Advance program counters.
@@ -408,12 +415,14 @@ ExceptionHandler(ExceptionType which)
          else{
           if(exitCodeChild==-1){           
             printf("Parent sleeping\n");
-            //interrupt->SetLevel(IntOff);
+            ListElement* mynode = new ListElement(currentThread,currentThread->getPID());
+            joinProcess.SortedInsert(mynode->item, mynode->key);
             currentThread->PutThreadToSleep();
-            interrupt->Enable();
+            interrupt->SetLevel(oldlevel);
           }
           else{
-            interrupt->Enable();
+            interrupt->SetLevel(oldlevel);
+            //interrupt->setlevel(oldlevel);
             printf("Child exited => join successful\n");
             machine->WriteRegister(2,exitCodeChild);
              //Advance program counters.
