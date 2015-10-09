@@ -1,0 +1,10 @@
+Point allocated for correct implementation of each component is listed below.
+
+Batch submission			:	10 points
+Non-preemptive with burst estimation	:	20 points
+Round-robin				:	15 points
+UNIX scheduler				:	30 points
+Correct statistics collection		:	10 points
+Explanations/Results in report		:	15 points
+-----------------------------------------------------------
+TOTAL					:      100 points
