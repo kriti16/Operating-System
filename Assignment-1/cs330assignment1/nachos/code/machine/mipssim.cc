@@ -97,7 +97,11 @@ Machine::OneInstruction(Instruction *instr)
     int nextLoadReg = 0; 	
     int nextLoadValue = 0; 	// record delayed load operation, to apply
 				// in the future
-    currentThread->numInstructions++;
+<<<<<<< HEAD
+   // currentThread->numInstructions++;
+=======
+   
+>>>>>>> c42f83bd11dffe3bfaf4228ad9cb821023b2ddb7
     // Fetch instruction 
     if (!machine->ReadMem(registers[PCReg], 4, &raw))
 	return;			// exception occurred

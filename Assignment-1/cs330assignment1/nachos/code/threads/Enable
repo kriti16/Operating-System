@@ -1,0 +1,17 @@
+main.cc:	    interrupt->Halt();		// once we start the console, then 
+synch.cc:    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+synch.cc:    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+synch.cc:    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+synch.cc:    (void) interrupt->SetLevel(oldLevel);
+system.cc:    if (interrupt->getStatus() != IdleMode)
+system.cc:	interrupt->YieldOnReturn();
+system.cc:    interrupt->Enable();
+thread.cc:    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+thread.cc:    (void) interrupt->SetLevel(oldLevel);
+thread.cc:    (void) interrupt->SetLevel(IntOff);		
+thread.cc:    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+thread.cc:    (void) interrupt->SetLevel(oldLevel);
+thread.cc:    ASSERT(interrupt->getLevel() == IntOff);
+thread.cc:            interrupt->Halt();
+thread.cc:	    interrupt->Idle();	// no one to run, wait for an interrupt
+thread.cc:static void InterruptEnable() { interrupt->Enable(); }
