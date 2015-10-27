@@ -77,7 +77,7 @@ TimerInterruptHandler(int dummy)
            delete ptr;
         }
         //printf("[%d] Timer interrupt.\n", stats->totalTicks);
-        interrupt->YieldOnReturn();
+        //interrupt->YieldOnReturn();    //Comment out if want pre-emptive
     }
 }
 

@@ -22,7 +22,28 @@
 
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
+
+//int cpuBurst, cpuUtilization, starttime;
 					// stack overflows
+//---------------
+//Set Status
+//---------------
+void NachOSThread::setStatus (ThreadStatus st){
+
+   if( status != RUNNING && st == RUNNING ){
+	cpuBurst = stats->totalTicks;
+        //printf("Start burst: %d\n",cpuBurst);	
+
+   }
+
+   else if ((status == RUNNING && st == BLOCKED) || (st == READY && status ==  RUNNING)){
+
+	cpuUtilization+=(stats->totalTicks - cpuBurst);
+      //  cpuBurst=0;
+       // printf("End Burst:%d\n",stats->totalTicks);
+   }
+    status = st;
+}
 
 //----------------------------------------------------------------------
 // NachOSThread::NachOSThread
@@ -218,8 +239,8 @@ NachOSThread::Exit (bool terminateSim, int exitcode)
     threadToBeDestroyed = currentThread;
 
     NachOSThread *nextThread;
-
-    status = BLOCKED;
+    
+    setStatus(BLOCKED);
 
     // Set exit code in parent's structure provided the parent hasn't exited
     if (ppid != -1) {
@@ -305,8 +326,9 @@ NachOSThread::PutThreadToSleep ()
     ASSERT(interrupt->getLevel() == IntOff);
     
     DEBUG('t', "Sleeping thread \"%s\"\n", getName());
+    DEBUG ('t',"Time:%d\n",stats->totalTicks);
 
-    status = BLOCKED;
+    setStatus(BLOCKED);
     while ((nextThread = scheduler->FindNextToRun()) == NULL)
 	interrupt->Idle();	// no one to run, wait for an interrupt
         

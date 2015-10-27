@@ -57,7 +57,7 @@
 #include "thread.h"
 
 // External functions used by this file
-
+int cpuBurst, cpuUtilization, starttime;
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
@@ -96,7 +96,11 @@ main(int argc, char **argv)
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
 #ifdef USER_PROGRAM
-        if (!strcmp(*argv, "-x")) {        	// run a user program
+        cpuUtilization =0;                               //Intialize cpu utilization
+        starttime = stats->totalTicks;                 // Initialize cpu start of exceution time
+        cpuBurst = stats->totalTicks;                  // cpu burst starts
+
+	if (!strcmp(*argv, "-x")) {        	// run a user program
 	    	ASSERT(argc > 1);
             StartProcess(*(argv + 1));
             argCount = 2;
@@ -105,12 +109,13 @@ main(int argc, char **argv)
         	ASSERT(argc > 1);
         	BatchProcess(*(argv+1));
         	argCount=2;
-        	// exitThreadArray[0] = true;
-        	// int i;
-       		// for (i=0; i<thread_index; i++) {
-         //  		if (!exitThreadArray[i]) break;
-       		// }
-       		currentThread->Exit(1, 0);
+        	exitThreadArray[currentThread->GetPID()] = true;
+        	int i;
+       		for (i=0; i<thread_index; i++) {
+         		if (!exitThreadArray[i]) break;
+       		 }
+		currentThread->Exit(i==thread_index,0);
+       		
         } 
         else if (!strcmp(*argv, "-c")) {      // test the console
 	    	if (argc == 1)

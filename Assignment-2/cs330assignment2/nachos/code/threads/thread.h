@@ -44,7 +44,9 @@
 
 #ifdef USER_PROGRAM
 #include "machine.h"
+#include "synch.h"
 #include "addrspace.h"
+#include "stats.h"
 #endif
 
 // CPU register state to be saved on context switch.  
@@ -62,7 +64,8 @@
 enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
 // external function, dummy routine whose sole job is to call NachOSThread::Print
-extern void ThreadPrint(int arg);	 
+extern void ThreadPrint(int arg);	
+extern int cpuBurst, cpuUtilization, starttime;
 
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
@@ -107,7 +110,7 @@ class NachOSThread {
    
     void CheckOverflow();   			// Check if thread has 
 						// overflowed its stack
-    void setStatus(ThreadStatus st) { status = st; }
+    void setStatus(ThreadStatus st);
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 
@@ -168,6 +171,7 @@ public:
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
+   // int cpuBurst, start;
 #endif
 };
 
