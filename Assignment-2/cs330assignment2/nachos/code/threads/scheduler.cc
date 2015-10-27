@@ -56,10 +56,7 @@ Scheduler::ReadyToRun (NachOSThread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    //thread->estCpuBurst = 0.5*thread->actCpuBurst + 0.5*thread->estCpuBurst;
-   // printf("For thread id: %d estimated cpu burst %f and actual cpu burst %f\n",thread->GetPID(),thread->estCpuBurst,thread->actCpuBurst);
-    //readyList->SortedInsert((void *)thread, thread->estCpuBurst);
-   readyList->Append((void *)thread);
+    readyList->SortedInsert((void *)thread, thread->priority);
 }
 
 //----------------------------------------------------------------------

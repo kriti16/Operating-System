@@ -93,8 +93,7 @@ class NachOSThread {
 					// is called
 
     // basic thread operations
-    float actCpuBurst, estCpuBurst;
-    int burstNum;
+    float CPUusage, priority, basePriority,startBurst;
     void ThreadFork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void YieldCPU();  				// Relinquish the CPU if any 
 						// other thread is runnable

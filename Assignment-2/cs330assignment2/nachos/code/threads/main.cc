@@ -96,10 +96,6 @@ main(int argc, char **argv)
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
 #ifdef USER_PROGRAM
-        //cpuUtilization =0;                               //Intialize cpu utilization
-       // starttime = stats->totalTicks;                 // Initialize cpu start of exceution time
-        currentThread->actCpuBurst = stats->totalTicks;                  // cpu burst starts
-        //currentThread->estCpuBurst = 0;
 
 	if (!strcmp(*argv, "-x")) {        	// run a user program
 	    	ASSERT(argc > 1);
@@ -108,6 +104,10 @@ main(int argc, char **argv)
         }
         else if(!strcmp(*argv, "-F")) {		//submit batch of programs
         	ASSERT(argc > 1);
+                currentThread->basePriority =50;
+                currentThread->priority =50;
+                currentThread->CPUusage=0;
+                currentThread->startBurst=0;
         	BatchProcess(*(argv+1));
         	argCount=2;
         	exitThreadArray[currentThread->GetPID()] = true;

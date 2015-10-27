@@ -76,7 +76,7 @@ TimerInterruptHandler(int dummy)
            sleepQueueHead = sleepQueueHead->GetNext();
            delete ptr;
         }
-        if(stats->totalTicks - currentThread->actCpuBurst >= TimerTicks){
+        if(stats->totalTicks - currentThread->startBurst >= TimerTicks){
 		interrupt->YieldOnReturn();                   
 	}
         //printf("[%d] Timer interrupt.\n", stats->totalTicks);

@@ -49,7 +49,7 @@ StartProcess(char *filename)
 }
 
 void
-StartMyProcess(char *filename)
+StartMyProcess(char *filename,int initpriority)
 {
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
@@ -62,7 +62,7 @@ StartMyProcess(char *filename)
     printf("Reached\n");
     child->space = new AddrSpace (executable);                   // Duplicates the address space
     currentThread->SaveUserState();
-
+    child->priority = child->priority + initpriority;         //base priority + initial priority value
     child->space->InitRegisters();     // set the initial register values
     child->SaveUserState ();
     
@@ -76,6 +76,7 @@ void BatchProcess(char *filename)
 {
     OpenFile *batchfile = fileSystem->Open(filename);
     char buff;
+    int priority=0;
     int count=0,length=batchfile->Length(),totalcount=0;
     char* myfilename=new char[15];
     //printf("%s",filename);
@@ -93,11 +94,14 @@ void BatchProcess(char *filename)
             //printf("%s",myfilename);
             count=-1;
         }
+	else if (count==-1){
+		priority = priority*10+(buff-48);
+	}
         else if(buff=='\n' || buff==EOF){
             if(count>=0){
                 myfilename[count]='\0';
             }
-            StartMyProcess(myfilename);
+            StartMyProcess(myfilename,priority);
             //printf("%s",myfilename);
             count=0;            
         }
