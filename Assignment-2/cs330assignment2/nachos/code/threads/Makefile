@@ -32,7 +32,10 @@ main.o: ../threads/main.cc ../threads/copyright.h ../threads/utility.h \
   /usr/include/string.h /usr/include/xlocale.h ../threads/system.h \
   ../threads/thread.h ../threads/scheduler.h ../threads/list.h \
   ../machine/interrupt.h ../threads/list.h ../machine/stats.h \
-  ../machine/timer.h ../threads/utility.h
+  ../machine/timer.h ../threads/utility.h /usr/include/syscall.h \
+  /usr/include/sys/syscall.h /usr/include/asm/unistd.h \
+  /usr/include/asm-i386/unistd.h /usr/include/bits/syscall.h \
+  ../machine/mipssim.h
 list.o: ../threads/list.cc ../threads/copyright.h ../threads/list.h \
   ../threads/utility.h ../machine/sysdep.h ../threads/copyright.h \
   /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
@@ -218,7 +221,10 @@ stats.o: ../machine/stats.cc ../threads/copyright.h ../threads/utility.h \
   /usr/include/gconv.h \
   /usr/lib/gcc/x86_64-redhat-linux/3.4.6/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
-  /usr/include/string.h /usr/include/xlocale.h ../machine/stats.h
+  /usr/include/string.h /usr/include/xlocale.h ../threads/system.h \
+  ../threads/utility.h ../threads/thread.h ../threads/scheduler.h \
+  ../threads/list.h ../machine/interrupt.h ../threads/list.h \
+  ../machine/stats.h ../machine/timer.h ../threads/thread.h
 timer.o: ../machine/timer.cc ../threads/copyright.h ../machine/timer.h \
   ../threads/utility.h ../threads/copyright.h ../machine/sysdep.h \
   /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \

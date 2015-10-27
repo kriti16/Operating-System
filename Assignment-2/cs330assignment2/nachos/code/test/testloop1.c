@@ -11,7 +11,7 @@ main()
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<SIZE; i++) sum += array[i];
        system_PrintInt(pid);
-       system_PrintInt(pid);
+      system_PrintInt(pid);
     }
     system_PrintChar('\n');
     system_PrintString("Total sum: ");

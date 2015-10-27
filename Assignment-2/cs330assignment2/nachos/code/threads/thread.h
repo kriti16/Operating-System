@@ -65,7 +65,7 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
 // external function, dummy routine whose sole job is to call NachOSThread::Print
 extern void ThreadPrint(int arg);	
-extern int cpuBurst, cpuUtilization, starttime;
+//extern int cpuBurst, cpuUtilization, starttime;
 
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
@@ -93,7 +93,7 @@ class NachOSThread {
 					// is called
 
     // basic thread operations
-
+    float actCpuBurst,estCpuBurst;
     void ThreadFork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void YieldCPU();  				// Relinquish the CPU if any 
 						// other thread is runnable

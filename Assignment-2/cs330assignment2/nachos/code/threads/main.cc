@@ -57,7 +57,7 @@
 #include "thread.h"
 
 // External functions used by this file
-int cpuBurst, cpuUtilization, starttime;
+//int cpuBurst, cpuUtilization, starttime;
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
@@ -96,9 +96,10 @@ main(int argc, char **argv)
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
 #ifdef USER_PROGRAM
-        cpuUtilization =0;                               //Intialize cpu utilization
-        starttime = stats->totalTicks;                 // Initialize cpu start of exceution time
-        cpuBurst = stats->totalTicks;                  // cpu burst starts
+        //cpuUtilization =0;                               //Intialize cpu utilization
+       // starttime = stats->totalTicks;                 // Initialize cpu start of exceution time
+        currentThread->actCpuBurst = stats->totalTicks;                  // cpu burst starts
+        currentThread->estCpuBurst = 0;
 
 	if (!strcmp(*argv, "-x")) {        	// run a user program
 	    	ASSERT(argc > 1);
