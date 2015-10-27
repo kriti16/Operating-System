@@ -32,16 +32,12 @@ void NachOSThread::setStatus (ThreadStatus st){
 
    if( status != RUNNING && st == RUNNING ){
 	actCpuBurst = stats->totalTicks;
-       // printf("Start burst: %f\n",actCpuBurst);	
+       //printf("Start burst: %f\n",actCpuBurst);	
 
    }
 
    else if ((status == RUNNING && st == BLOCKED) || (st == READY && status ==  RUNNING)){
 
-          actCpuBurst = stats->totalTicks - actCpuBurst;
-	//cpuUtilization+=(stats->totalTicks - cpuBurst);
-      //  cpuBurst=0;
-      // printf("End Burst:%f\n",actCpuBurst);
    }
     status = st;
 }
@@ -76,8 +72,9 @@ NachOSThread::NachOSThread(char* threadName)
     }
     else ppid = -1;
 
-   actCpuBurst =100;
-    estCpuBurst =100;
+   actCpuBurst =0;
+   burstNum=0;
+   estCpuBurst =0;
 
     childcount = 0;
     waitchild_id = -1;

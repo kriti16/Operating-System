@@ -99,7 +99,7 @@ main(int argc, char **argv)
         //cpuUtilization =0;                               //Intialize cpu utilization
        // starttime = stats->totalTicks;                 // Initialize cpu start of exceution time
         currentThread->actCpuBurst = stats->totalTicks;                  // cpu burst starts
-        currentThread->estCpuBurst = 0;
+        //currentThread->estCpuBurst = 0;
 
 	if (!strcmp(*argv, "-x")) {        	// run a user program
 	    	ASSERT(argc > 1);

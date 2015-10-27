@@ -35,9 +35,10 @@ Statistics::Statistics()
 void
 Statistics::Print()
 {
-        
-    //int exec_time = stats->totalTicks - starttime;
-    //printf("Execution time; %d\n",exec_time );
+    
+   // printf("Ending Thread pid:%d with number of bursts: %d and cpu length:%f\n",currentThread->GetPID(),currentThread->burstNum,currentThread->estCpuBurst);    
+    //float burst_length = (currentThread->estCpuBurst)/(currentThread->burstNum);
+    //printf("BurstLengt: %f\n",burst_length );
     //double cpuUtil = (cpuUtilization*1.0)/exec_time;
     //printf("CPU Utilization: %lf\n",cpuUtil);
     printf("Ticks: total %d, idle %d, system %d, user %d\n", totalTicks, 
