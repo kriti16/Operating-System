@@ -78,8 +78,13 @@ Timer::TimerExpired()
 int 
 Timer::TimeOfNextInterrupt() 
 {
-    if (randomize)
-	return 1 + (Random() % (TimerTicks * 2));
-    else
-	return TimerTicks; 
+    if(DEFAULT || BURST){
+        if (randomize)
+    	   return 1 + (Random() % (TimerTicks * 2));
+        else
+    	   return TimerTicks; 
+    }
+    if(ROUNDR){
+        return TimerTicks;
+    }
 }

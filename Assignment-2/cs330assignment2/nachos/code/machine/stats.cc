@@ -35,11 +35,15 @@ Statistics::Statistics()
 void
 Statistics::Print()
 {
-        
-    //int exec_time = stats->totalTicks - starttime;
-    //printf("Execution time; %d\n",exec_time );
-    //double cpuUtil = (cpuUtilization*1.0)/exec_time;
-    //printf("CPU Utilization: %lf\n",cpuUtil);
+    int exec_time;
+    double cpuUtil;
+    if(DEFAULT){    
+        exec_time = stats->totalTicks - starttime;
+        printf("Total Execution time; %d\n",exec_time );
+        cpuUtil = (cpuUtilization*1.0)/exec_time;
+        printf("CPU Utilization: %lf\n",cpuUtil);
+    }
+  
     printf("Ticks: total %d, idle %d, system %d, user %d\n", totalTicks, 
 	idleTicks, systemTicks, userTicks);
     printf("Disk I/O: reads %d, writes %d\n", numDiskReads, numDiskWrites);

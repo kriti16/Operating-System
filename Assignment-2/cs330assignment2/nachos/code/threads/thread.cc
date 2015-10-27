@@ -19,11 +19,12 @@
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
+#include "scheduler.h"
 
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
 
-//int cpuBurst, cpuUtilization, starttime;
+//extern int cpuBurst, cpuUtilization, starttime;
 					// stack overflows
 //---------------
 //Set Status
@@ -31,14 +32,33 @@
 void NachOSThread::setStatus (ThreadStatus st){
 
    if( status != RUNNING && st == RUNNING ){
-	actCpuBurst = stats->totalTicks;
+      if(DEFAULT){
+        cpuBurst = stats->totalTicks;
+      }
+      if(BURST){
+	       actCpuBurst = stats->totalTicks;
+      }
+      if(UNIXS){
+        startBurst = stats->totalTicks;
        // printf("Start burst: %f\n",actCpuBurst);	
+      }
 
    }
 
    else if ((status == RUNNING && st == BLOCKED) || (st == READY && status ==  RUNNING)){
+          if(DEFAULT){
+            cpuUtilization+=(stats->totalTicks - cpuBurst);
+          }
+          if(BURST){
+            actCpuBurst = stats->totalTicks - actCpuBurst;
+          }
+          if(UNIXS){
+              if(stats->totalTicks - startBurst > 0){ 
+                  CPUusage = (CPUusage + stats->totalTicks - startBurst)/2;
+                  priority = basePriority + CPUusage/2;
+              }
+          }
 
-          actCpuBurst = stats->totalTicks - actCpuBurst;
 	//cpuUtilization+=(stats->totalTicks - cpuBurst);
       //  cpuBurst=0;
       // printf("End Burst:%f\n",actCpuBurst);
@@ -76,9 +96,19 @@ NachOSThread::NachOSThread(char* threadName)
     }
     else ppid = -1;
 
-   actCpuBurst =100;
-    estCpuBurst =100;
-
+    if(BURST){
+      actCpuBurst =100;
+      estCpuBurst =100;
+    }
+    if(ROUNDR){
+      actCpuBurst =0;
+       burstNum=0;
+       estCpuBurst =0;
+    }
+    if(UNIXS){
+        CPUusage=0;
+        basePriority=50;
+    }
     childcount = 0;
     waitchild_id = -1;
 
