@@ -103,6 +103,20 @@ ExceptionHandler(ExceptionType which)
 	DEBUG('a', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
     }
+    else if ((which == SyscallException) && (type == syscall_ShmAllocate)) {
+       int sharedSize = machine->ReadRegister(4);
+       if (sharedSize % PageSize == 0)
+	  sharedSize = sharedSize/PageSize;
+       else
+          sharedSize = sharedSize/PageSize +1;
+       int oldPages = currentThread->space->GetNumPages();
+       currentThread->space->AddShared(sharedSize);
+       
+       machine->WriteRegister(2,oldPages);
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
     else if ((which == SyscallException) && (type == syscall_Exit)) {
        exitcode = machine->ReadRegister(4);
        printf("[pid %d]: Exit called. Code: %d\n", currentThread->GetPID(), exitcode);

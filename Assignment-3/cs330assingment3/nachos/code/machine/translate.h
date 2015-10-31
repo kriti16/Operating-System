@@ -40,6 +40,7 @@ class TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
+    bool shared;        //This bit is set suring ShmAllocate if this page is shared or not
 };
 
 #endif

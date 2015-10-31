@@ -93,6 +93,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	pageTable[i].valid = TRUE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
+        pageTable[i].shared = FALSE;     // this memory is not shared
 	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
 					// a separate page, we could set its 
 					// pages to be read-only
@@ -149,7 +150,12 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
-        pageTable[i].physicalPage = i+numPagesAllocated;
+        if (pageTable[i].shared) 
+           pageTable[i].physicalPage = parentPageTable[i].physicalPage;
+        else {
+           pageTable[i].physicalPage = i+numPagesAllocated;
+           numPagesAllocated++;
+        }
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
@@ -165,8 +171,41 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
        machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
     }
 
-    numPagesAllocated += numPages;
+    //numPagesAllocated += numPages;
 }
+
+//---------------------------------------------------------------------
+// AddrSpace::AddShared( SharedSize)
+//       Allocate shared pages
+//---------------------------------------------------------------------
+void
+AddrSpace::AddShared(int sharedSize) 
+{
+   TranslationEntry * newPageTable = new TranslationEntry [ numPages + sharedSize ];
+   for (int i=0;i<numPages;i++) {
+       newPageTable[i].virtualPage = pageTable[i].virtualPage;
+       newPageTable[i].physicalPage = pageTable[i].physicalPage;
+       newPageTable[i].valid = pageTable[i].valid;
+       newPageTable[i].use = pageTable[i].use;
+       newPageTable[i].dirty = pageTable[i].dirty;
+       newPageTable[i].shared = pageTable[i].shared;
+       newPageTable[i].readOnly = pageTable[i].readOnly;
+   }
+   for (int i=numPages;i < numPages + sharedSize ;i++) {
+       newPageTable[i].virtualPage = i;
+       newPageTable[i].physicalPage = i+numPagesAllocated-numPages;
+       newPageTable[i].valid = TRUE;
+       newPageTable[i].use = FALSE;
+       newPageTable[i].dirty = FALSE;
+       newPageTable[i].shared = TRUE;
+       newPageTable[i].readOnly = FALSE;
+   }
+   numPagesAllocated +=sharedSize;
+   delete pageTable;
+   pageTable = newPageTable;
+   numPages +=sharedSize;
+}
+
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
