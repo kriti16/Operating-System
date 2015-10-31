@@ -1,0 +1,9 @@
+Point allocated for correct implementation of each component is listed below.
+
+Shared memory implementation		:	20 points
+Semaphore system calls			:	15 points
+Condition variable			:	20 points
+Demand paging				:	35 points
+Explanations in report			:	10 points
+-----------------------------------------------------------
+TOTAL					:      100 points
