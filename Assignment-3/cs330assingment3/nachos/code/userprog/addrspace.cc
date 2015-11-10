@@ -148,17 +148,19 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     // first, set up the translation
     TranslationEntry* parentPageTable = parentSpace->GetPageTable();
     pageTable = new TranslationEntry[numPages];
+    unsigned startAddrChild = numPagesAllocated*PageSize;
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
-        if (pageTable[i].shared) 
+        if (parentPageTable[i].shared) 
            pageTable[i].physicalPage = parentPageTable[i].physicalPage;
         else {
-           pageTable[i].physicalPage = i+numPagesAllocated;
+           pageTable[i].physicalPage = numPagesAllocated;
            numPagesAllocated++;
         }
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
+        pageTable[i].shared = parentPageTable[i].shared;
         pageTable[i].readOnly = parentPageTable[i].readOnly;  	// if the code segment was entirely on
                                         			// a separate page, we could set its
                                         			// pages to be read-only
@@ -166,10 +168,17 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
 
     // Copy the contents
     unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
-    unsigned startAddrChild = numPagesAllocated*PageSize;
+    //unsigned startAddrChild = numPagesAllocated*PageSize;
     for (i=0; i<size; i++) {
-       machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
+         machine->mainMemory[startAddrChild+i]=machine->mainMemory[startAddrParent+i];
     }
+    /*for (i=0; i<numPages; i++) {
+       if(!pageTable[i].shared){
+          for(int j=0;j<PageSize;j++){
+       	      machine->mainMemory[j+pageTable[i].physicalPage] = machine->mainMemory[j+parentPageTable[i].physicalPage];
+          }   
+       }
+    }*/
 
     //numPagesAllocated += numPages;
 }
@@ -178,7 +187,7 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
 // AddrSpace::AddShared( SharedSize)
 //       Allocate shared pages
 //---------------------------------------------------------------------
-void
+TranslationEntry*
 AddrSpace::AddShared(int sharedSize) 
 {
    TranslationEntry * newPageTable = new TranslationEntry [ numPages + sharedSize ];
@@ -204,10 +213,11 @@ AddrSpace::AddShared(int sharedSize)
    delete pageTable;
    pageTable = newPageTable;
    numPages +=sharedSize;
+   return pageTable;
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------i-------------------------
 // AddrSpace::~AddrSpace
 // 	Dealloate an address space.  Nothing for now!
 //----------------------------------------------------------------------
