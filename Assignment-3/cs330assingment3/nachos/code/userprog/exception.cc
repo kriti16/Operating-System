@@ -55,7 +55,7 @@ static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
 extern void StartProcess (char*);
-
+SemTableEntry SemTable[15];
 void
 ForkStartFunction (int dummy)
 {
@@ -103,9 +103,70 @@ ExceptionHandler(ExceptionType which)
 	DEBUG('a', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
     }
+    else if ((which == SyscallException) && (type == syscall_SemCtl)) {
+       int id = machine->ReadRegister(4);
+       int command = machine->ReadRegister(5);
+       int *val = (int*) machine->ReadRegister(6);
+       machine->WriteRegister(2,0);
+       if (SemTable[id].mysem!=NULL) {
+          if (command == 0 ) 
+             delete SemTable[id].mysem;
+          else if (command == 1) 
+             *val = SemTable[id].mysem->getVal();
+          else if (command == 2)
+              SemTable[id].mysem->setVal(*val);
+          else
+              machine->WriteRegister(2,-1);
+       }
+       else
+           machine->WriteRegister(2,-1);
+       machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == syscall_SemOp)) {
+       int id = machine->ReadRegister(4);
+       int change = machine->ReadRegister(5);
+       if (change == 1 && SemTable[id].mysem!=NULL) {
+          SemTable[id].mysem->V();
+       }
+       else if (change == -1 && SemTable[id].mysem!=NULL) {
+           SemTable[id].mysem->P();
+       }
+       else {
+           printf("Incorrect function pass Sem op\n");
+       }
+       machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == syscall_SemGet)) {
+       int key = machine->ReadRegister(4);
+       bool flag =FALSE;
+       for (int i=0;i<15;i++) {
+           if(SemTable[i].mysem !=NULL && SemTable[i].key==key){
+               flag = TRUE;
+               machine->WriteRegister(2,i);
+               break;
+           }
+       }
+       if (!flag){
+          for(int i=0;i<15;i++) {
+             if (SemTable[i].mysem == NULL){
+                SemTable[i].key=key;
+                *SemTable[i].mysem = Semaphore("anything",2);
+                machine->WriteRegister(2,i);
+		break;
+             }
+          }
+       }
+       machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
+    }
     else if ((which == SyscallException) && (type == syscall_ShmAllocate)) {
        int sharedSize = machine->ReadRegister(4);
-       printf("Yollo\n");
+      //printf("Yollo\n");
        if (sharedSize % PageSize == 0)
 	  sharedSize = sharedSize/PageSize;
        else

@@ -37,6 +37,7 @@
 // and some other thread might have called P or V, so the true value might
 // now be different.
 
+
 class Semaphore {
   public:
     Semaphore(char* debugName, int initialValue);	// set initial value
@@ -45,12 +46,19 @@ class Semaphore {
     
     void P();	 // these are the only operations on a semaphore
     void V();	 // they are both *atomic*
-    
+    int getVal();
+    void setVal(int i);
   private:
     char* name;        // useful for debugging
     int value;         // semaphore value, always >= 0
     List *queue;       // threads waiting in P() for the value to be > 0
 };
+class SemTableEntry {
+   public:
+      Semaphore *mysem;
+      int key;
+};
+extern SemTableEntry SemTable[15];
 
 // The following class defines a "lock".  A lock can be BUSY or FREE.
 // There are only two operations allowed on a lock: 
