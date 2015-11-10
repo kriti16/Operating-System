@@ -106,15 +106,20 @@ ExceptionHandler(ExceptionType which)
     else if ((which == SyscallException) && (type == syscall_SemCtl)) {
        int id = machine->ReadRegister(4);
        int command = machine->ReadRegister(5);
-       int *val = (int*) machine->ReadRegister(6);
+       int virtAddrVal = machine->ReadRegister(6);
+       int finalval;
+       machine->ReadMem(virtAddrVal,sizeof(int),&finalval);
+       //printf("s it ok till here?%d\n",finalval);
        machine->WriteRegister(2,0);
        if (SemTable[id].mysem!=NULL) {
           if (command == 0 ) 
              delete SemTable[id].mysem;
-          else if (command == 1) 
-             *val = SemTable[id].mysem->getVal();
+          else if (command == 1) {
+             finalval = SemTable[id].mysem->getVal();
+	     machine->WriteMem(virtAddrVal,sizeof(int),finalval);
+          }
           else if (command == 2)
-              SemTable[id].mysem->setVal(*val);
+              SemTable[id].mysem->setVal(finalval);
           else
               machine->WriteRegister(2,-1);
        }
@@ -154,12 +159,14 @@ ExceptionHandler(ExceptionType which)
           for(int i=0;i<15;i++) {
              if (SemTable[i].mysem == NULL){
                 SemTable[i].key=key;
-                *SemTable[i].mysem = Semaphore("anything",2);
+                SemTable[i].mysem = new Semaphore(0,2);
+		//printf("Is the prob here\n");
                 machine->WriteRegister(2,i);
 		break;
              }
           }
        }
+	//printf("OK till here\n");
        machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
@@ -233,7 +240,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-       printf("Hey there from fork\n");
+       //printf("Hey there from fork\n");
        child = new NachOSThread("Forked thread", GET_NICE_FROM_PARENT);
        child->space = new AddrSpace (currentThread->space);  // Duplicates the address space
        child->SaveUserState ();		     		      // Duplicate the register set
@@ -241,7 +248,7 @@ ExceptionHandler(ExceptionType which)
        child->ThreadStackAllocate (ForkStartFunction, 0);	// Make it ready for a later context switch
        child->Schedule ();
        machine->WriteRegister(2, child->GetPID());		// Return value for parent
-       printf("Fork might be ok\n");
+       //printf("Fork might be ok\n");
     }
     else if ((which == SyscallException) && (type == syscall_Yield)) {
        currentThread->YieldCPU();

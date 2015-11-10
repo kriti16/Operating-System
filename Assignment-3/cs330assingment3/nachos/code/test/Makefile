@@ -37,7 +37,7 @@ CPP = /usr/bin/cpp
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort printtest vectorsum testregPA forkjoin testexec testyield testloop forkjoin_hard testloop1 testloop2 testloop3 testlooplong testloop4 testloop5 queue vmtest1 vmtest2
+all: halt shell matmult sort printtest vectorsum testregPA forkjoin testexec testyield testloop forkjoin_hard testloop1 testloop2 testloop3 testlooplong testloop4 testloop5 queue vmtest1 vmtest2 testsem
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.s > strt.s
@@ -216,5 +216,14 @@ vmtest2: vmtest2.o start.o
 	$(LD) $(LDFLAGS) start.o vmtest2.o -o vmtest2.coff
 	../bin/coff2noff vmtest2.coff vmtest2
 
+testsem.o: testsem.c
+	$(CC) $(INCDIR) -S testsem.c -o testsem.s
+	$(AS) $(CFLAGS) testsem.s -o testsem.o
+	rm -f testsem.s
+testsem: testsem.o start.o
+	$(LD) $(LDFLAGS) start.o testsem.o -o testsem.coff
+	../bin/coff2noff testsem.coff testsem
+
+
 clean:
-	rm -f start.o halt.o halt shell.o shell sort.o sort matmult.o matmult halt.coff shell.coff sort.coff matmult.coff printtest.o printtest printtest.coff vectorsum.o vectorsum.coff vectorsum testregPA.o testregPA.coff testregPA forkjoin.o forkjoin.coff forkjoin testexec.o testexec.coff testexec testyield.o testyield.coff testyield testloop.o testloop.coff testloop forkjoin_hard.o forkjoin_hard.coff forkjoin_hard testloop1.o testloop1.coff testloop1 testloop2.o testloop2.coff testloop2 testloop3.o testloop3.coff testloop3 testlooplong.o testlooplong.coff testlooplong testloop4.o testloop4 testloop4.coff testloop5.o testloop5 testloop5.coff queue.o queue queue.coff vmtest1.o vmtest1 vmtest1.coff vmtest2.o vmtest2 vmtest2.coff
+	rm -f start.o halt.o halt shell.o shell sort.o sort matmult.o matmult halt.coff shell.coff sort.coff matmult.coff printtest.o printtest printtest.coff vectorsum.o vectorsum.coff vectorsum testregPA.o testregPA.coff testregPA forkjoin.o forkjoin.coff forkjoin testexec.o testexec.coff testexec testyield.o testyield.coff testyield testloop.o testloop.coff testloop forkjoin_hard.o forkjoin_hard.coff forkjoin_hard testloop1.o testloop1.coff testloop1 testloop2.o testloop2.coff testloop2 testloop3.o testloop3.coff testloop3 testlooplong.o testlooplong.coff testlooplong testloop4.o testloop4 testloop4.coff testloop5.o testloop5 testloop5.coff queue.o queue queue.coff vmtest1.o vmtest1 vmtest1.coff vmtest2.o vmtest2 vmtest2.coff testsem.o testsem testsem.coff
