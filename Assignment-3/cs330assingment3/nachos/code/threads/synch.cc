@@ -125,8 +125,48 @@ Lock::~Lock() {}
 void Lock::Acquire() {}
 void Lock::Release() {}
 
-Condition::Condition(char* debugName) { }
+
+Condition::Condition(char* debugName) 
+{
+   char *a,*b;
+   myCondSem = new Semaphore(a,1);
+   cond = new Semaphore(b,1);
+   name = debugName;
+   count=0;
+}
 Condition::~Condition() { }
 void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
 void Condition::Signal(Lock* conditionLock) { }
 void Condition::Broadcast(Lock* conditionLock) { }
+
+void 
+Condition::Wait(Semaphore * myMutex) 
+{
+    myCondSem->P();                         //We had seen bits of this code from the lecture notes and bits from the 
+    count++;                               //internet - source= research.microsoft.com/pubs/64242/implementingcvs.pdf
+    myCondSem->V();
+
+    myMutex->V();
+    cond->P();
+    myMutex->P();
+}
+void
+Condition::Signal()
+{
+    myCondSem->P();                       //same as above
+    if (count>0) { 
+       cond->V();
+       count--;
+    }
+    myCondSem->V();
+}
+void 
+Condition::Broadcast()
+{
+     myCondSem->P();                         //same as above
+     while(count >0) {
+        cond->V();
+        count--;
+     }
+     myCondSem->V();
+}

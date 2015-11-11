@@ -56,6 +56,7 @@ static void WriteDone(int arg) { writeDone->V(); }
 
 extern void StartProcess (char*);
 SemTableEntry SemTable[15];
+ConditionTableEntry conditionTable[15];
 void
 ForkStartFunction (int dummy)
 {
@@ -102,6 +103,65 @@ ExceptionHandler(ExceptionType which)
     if ((which == SyscallException) && (type == syscall_Halt)) {
 	DEBUG('a', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
+    } 
+    else if ((which == SyscallException) && (type == syscall_CondRemove)) {
+       int id = machine->ReadRegister(4);
+       machine->WriteRegister(2,0);
+       if (conditionTable[id].myCond!=NULL)
+          delete conditionTable[id].myCond;
+       else 
+           machine->WriteRegister(2,-1);
+       machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == syscall_CondOp)) {
+       int id = machine->ReadRegister(4);
+       int command = machine->ReadRegister(5);
+       int semID = machine->ReadRegister(6);
+       //printf("s it ok till here?%d\n",finalval);
+       machine->WriteRegister(2,0);
+       if (conditionTable[id].myCond!=NULL) {
+          if (command == 0 && SemTable[semID].mysem!=NULL) 
+             conditionTable[id].myCond->Wait(SemTable[semID].mysem);
+          else if (command == 1) 
+             conditionTable[id].myCond->Signal();
+          else if (command == 2)
+              conditionTable[id].myCond->Broadcast();
+          else
+              machine->WriteRegister(2,-1);
+       }
+       else
+           machine->WriteRegister(2,-1);
+       machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == syscall_CondGet)) {   
+       int key = machine->ReadRegister(4);
+       bool flag =FALSE;
+       for (int i=0;i<15;i++) {
+           if(conditionTable[i].myCond !=NULL && conditionTable[i].key==key){
+               flag = TRUE;
+               machine->WriteRegister(2,i);
+               break;
+           }
+       }
+       if (!flag){
+          for(int i=0;i<15;i++) {
+             if (conditionTable[i].myCond == NULL){
+                conditionTable[i].key=key;
+                conditionTable[i].myCond = new Condition(0);
+		//printf("Is the prob here\n");
+                machine->WriteRegister(2,i);
+		break;
+             }
+          }
+       }
+	//printf("OK till here\n");
+       machine->WriteRegister(PrevPCReg,machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg,machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg,machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == syscall_SemCtl)) {
        int id = machine->ReadRegister(4);

@@ -137,9 +137,21 @@ class Condition {
     void Signal(Lock *conditionLock);   // conditionLock must be held by
     void Broadcast(Lock *conditionLock);// the currentThread for all of 
 					// these operations
-
-  private:
+    void Wait(Semaphore *myMutex); 
+    void Signal();
+    void Broadcast();     
+ private:
     char* name;
+    Semaphore* cond; 
+    Semaphore* myCondSem;
+    int count;
     // plus some other stuff you'll need to define
 };
+
+class ConditionTableEntry {
+  public:
+     Condition* myCond;
+     int key;
+};
+extern ConditionTableEntry conditionTable[15];
 #endif // SYNCH_H
