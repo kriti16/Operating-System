@@ -97,7 +97,7 @@ Machine::ReadMem(int addr, int size, int *value)
     exception = Translate(addr, &physicalAddress, size, FALSE);
     if (exception != NoException) {
 	machine->RaiseException(exception, addr);
-	return FALSE;
+	exception = Translate(addr, &physicalAddress, size, FALSE);
     }
     switch (size) {
       case 1:
@@ -146,7 +146,7 @@ Machine::WriteMem(int addr, int size, int value)
     exception = Translate(addr, &physicalAddress, size, TRUE);
     if (exception != NoException) {
 	machine->RaiseException(exception, addr);
-	return FALSE;
+	exception = Translate(addr, &physicalAddress, size, TRUE);
     }
     switch (size) {
       case 1:
@@ -239,8 +239,11 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	return ReadOnlyException;
     }
 
-    if(!entry->valid)
+    if(!entry->valid){
+//	printf("virtAddr:%d\n",virtAddr);
 	return PageFaultException;
+    }
+//	printf("virtAddr:%d\n",virtAddr);
 
    pageFrame = entry->physicalPage;
 

@@ -107,6 +107,7 @@ ExceptionHandler(ExceptionType which)
     }
     else if (which == PageFaultException) {	
         int virtAddr = machine->registers[BadVAddrReg]/PageSize;
+     //   printf("Hi");
         currentThread->space->DemandPaging(virtAddr); 
 //        currentThread->setStatus(BLOCKED);
         currentThread->SortedInsertInWaitQueue (1000+stats->totalTicks);
@@ -308,7 +309,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-       //printf("Hey there from fork\n");
+     //  printf("Hey there from fork\n");
        child = new NachOSThread("Forked thread", GET_NICE_FROM_PARENT);
        child->space = new AddrSpace (currentThread->space);  // Duplicates the address space
        child->SaveUserState ();		     		      // Duplicate the register set
@@ -316,7 +317,7 @@ ExceptionHandler(ExceptionType which)
        child->ThreadStackAllocate (ForkStartFunction, 0);	// Make it ready for a later context switch
        child->Schedule ();
        machine->WriteRegister(2, child->GetPID());		// Return value for parent
-       printf("Fork might be ok\n");
+      // printf("Fork might be ok\n");
     }
     else if ((which == SyscallException) && (type == syscall_Yield)) {
        currentThread->YieldCPU();

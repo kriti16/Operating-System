@@ -83,9 +83,12 @@ main()
 
     notFullid = system_CondGet(COND_KEY1);
     notEmptyid = system_CondGet(COND_KEY2);
+    system_SemOp(stdoutsemid, -1);
+    system_PrintChar('\n');
+    system_SemOp(stdoutsemid, 1);
 
     for (i=0; i<NUM_DEQUEUER; i++) {
-       x = system_Fork();
+	x = system_Fork();
        if (x == 0) {
           for (j=0; j<NUM_DEQUEUE_OP; j++) {
              x = Dequeue (i, &y);
@@ -116,7 +119,7 @@ main()
              system_PrintString(": Inserted ");
              system_PrintInt(x+j);
              system_PrintString(" in slot ");
-             system_PrintInt(y);
+             //system_PrintInt(y);
              system_PrintChar('\n');
              system_SemOp(stdoutsemid, 1);
           }

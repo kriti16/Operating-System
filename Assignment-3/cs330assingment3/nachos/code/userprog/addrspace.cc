@@ -101,7 +101,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     }
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
-    bzero(&machine->mainMemory[numPagesAllocated*PageSize], size);
+   bzero(&machine->mainMemory[numPagesAllocated*PageSize], size);
  
    // numPagesAllocated += numPages;
 
@@ -153,16 +153,24 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     unsigned startAddrChild = numPagesAllocated*PageSize;
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
-        if (parentPageTable[i].shared) 
+        if (parentPageTable[i].shared){ 
+       	      pageFault++;
            pageTable[i].physicalPage = parentPageTable[i].physicalPage;
+	}
         else if(parentPageTable[i].valid) {
+	IntStatus oldLevel1 = interrupt->SetLevel(IntOff);
            for(int j=0;j<NumPhysPages;j++){
+		
 		if(!MainMachinePageTable[j]) {
            		pageTable[i].physicalPage = j;
+		//printf("%d:%d\n",i,pageTable[i].physicalPage);
 			MainMachinePageTable[j] = TRUE;
+       	      		pageFault++;
+			break;
 		}
 	   }
  
+	(void) interrupt->SetLevel(oldLevel1);
         }
 	else{
 		pageTable[i].physicalPage = i;
@@ -184,13 +192,14 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     }*/
     for (i=0; i<numPages; i++) {
        if(!pageTable[i].shared && pageTable[i].valid){
+    	bzero(&machine->mainMemory[pageTable[i].physicalPage*PageSize], PageSize);
+	//printf("%d:%d & %d:%d\n",i,pageTable[i].physicalPage,i,parentPageTable[i].physicalPage);
           for(int j=0;j<PageSize;j++){
-		printf("%d\n",i);
-       	      machine->mainMemory[j+pageTable[i].physicalPage*PageSize] = machine->mainMemory[j+parentPageTable[i].physicalPage*PageSize];
+	      machine->mainMemory[j+pageTable[i].physicalPage*PageSize] = machine->mainMemory[j+parentPageTable[i].physicalPage*PageSize];
           }   
        }
     }
-	printf("Hi\n");
+//	printf("Hi\n");
     //numPagesAllocated += numPages;
 }
 
@@ -213,12 +222,15 @@ AddrSpace::AddShared(int sharedSize)
    }
    int j=0;
    for (int i=numPages;i < numPages + sharedSize ;i++) {
+	IntStatus oldLevel1 = interrupt->SetLevel(IntOff);
        	for(;j<NumPhysPages;j++) 
 		if(!MainMachinePageTable[j])
 			break;
 	newPageTable[i].virtualPage = i;
        	newPageTable[i].physicalPage = j;
         newPageTable[i].valid = TRUE;
+	MainMachinePageTable[j] = TRUE;
+	(void) interrupt->SetLevel(oldLevel1);
 	pageFault++;
         newPageTable[i].use = FALSE;
         newPageTable[i].dirty = FALSE;
@@ -317,11 +329,13 @@ AddrSpace::GetPageTable()
 void
 AddrSpace::DemandPaging(int virtAddr)
 {
-	if(currExecutable==NULL)
-		printf("virtpage :%d\n",virtAddr);
+	if(currExecutable==NULL);
+//		printf("virtpage :%d\n",virtAddr);
 	
+	IntStatus oldLevel2 = interrupt->SetLevel(IntOff);
 	for(int i=0;i<NumPhysPages;i++){
 		if(!MainMachinePageTable[i]){
+			//printf("Physical page:%d\n",i);
 			pageTable[virtAddr].physicalPage = i;
 			pageTable[virtAddr].valid = TRUE;
 			MainMachinePageTable[i] = TRUE;
@@ -333,4 +347,5 @@ AddrSpace::DemandPaging(int virtAddr)
 			break;
 		}
 	}
+	(void) interrupt->SetLevel(oldLevel2);
 }

@@ -53,6 +53,7 @@ StartProcess(char *filename)
        }
       delete oldPageTable;   
     }
+    //printf("yollo\n");
     currentThread->space = space;
     (void) interrupt->SetLevel(oldLevel);
     //delete executable;			// close file

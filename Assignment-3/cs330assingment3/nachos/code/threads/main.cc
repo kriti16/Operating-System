@@ -119,9 +119,11 @@ main(int argc, char **argv)
         } else if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
 	    pageFault=0;
+            fflush(stdout);
 	    for(int a=0;a<NumPhysPages;a++) {
 		MainMachinePageTable[a]=FALSE;
 	    }
+	//	/printf("Hi from main\n");
             StartProcess(*(argv + 1));
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
