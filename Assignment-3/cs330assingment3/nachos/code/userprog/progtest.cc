@@ -14,6 +14,9 @@
 #include "addrspace.h"
 #include "synch.h"
 #include "filesys.h"
+#include "machine.h"
+
+bool MainMachinePageTable[NumPhysPages];
 
 void
 BatchStartFunction (int dummy)
@@ -38,10 +41,21 @@ StartProcess(char *filename)
 	printf("Unable to open file %s\n", filename);
 	return;
     }
-    space = new AddrSpace(executable);    
+       IntStatus oldLevel = interrupt->SetLevel(IntOff);
+       space = new AddrSpace(executable);
+    if(currentThread->space!=NULL) {
+       int numOldPages = currentThread->space->GetNumPages();
+       TranslationEntry* oldPageTable = currentThread->space->GetPageTable() ;
+       for (int i=0;i<numOldPages;i++) {
+        	if(oldPageTable[i].valid && !oldPageTable[i].shared) {
+	        	MainMachinePageTable[oldPageTable[i].physicalPage]=FALSE;
+	        }
+       }
+      delete oldPageTable;   
+    }
     currentThread->space = space;
-
-    delete executable;			// close file
+    (void) interrupt->SetLevel(oldLevel);
+    //delete executable;			// close file
 
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register

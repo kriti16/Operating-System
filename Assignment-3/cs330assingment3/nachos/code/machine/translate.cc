@@ -37,6 +37,7 @@
 // Routines for converting Words and Short Words to and from the
 // simulated machine's format of little endian.  These end up
 // being NOPs when the host machine is also little endian (DEC and Intel).
+int pageFault;
 
 unsigned int
 WordToHost(unsigned int word) {
@@ -237,7 +238,11 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	DEBUG('a', "%d mapped read-only at %d in TLB!\n", virtAddr, i);
 	return ReadOnlyException;
     }
-    pageFrame = entry->physicalPage;
+
+    if(!entry->valid)
+	return PageFaultException;
+
+   pageFrame = entry->physicalPage;
 
     // if the pageFrame is too big, there is something really wrong! 
     // An invalid translation was loaded into the page table or TLB. 

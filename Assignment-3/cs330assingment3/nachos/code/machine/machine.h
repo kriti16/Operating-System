@@ -216,4 +216,7 @@ unsigned short ShortToHost(unsigned short shortword);
 unsigned int WordToMachine(unsigned int word);
 unsigned short ShortToMachine(unsigned short shortword);
 
+
+extern bool MainMachinePageTable[NumPhysPages];
+extern int pageFault;
 #endif // MACHINE_H

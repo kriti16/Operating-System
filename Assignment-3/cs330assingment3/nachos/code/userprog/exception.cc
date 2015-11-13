@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "console.h"
 #include "synch.h"
+#include "machine.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -103,7 +104,14 @@ ExceptionHandler(ExceptionType which)
     if ((which == SyscallException) && (type == syscall_Halt)) {
 	DEBUG('a', "Shutdown, initiated by user program.\n");
    	interrupt->Halt();
-    } 
+    }
+    else if (which == PageFaultException) {	
+        int virtAddr = machine->registers[BadVAddrReg]/PageSize;
+        currentThread->space->DemandPaging(virtAddr); 
+//        currentThread->setStatus(BLOCKED);
+        currentThread->SortedInsertInWaitQueue (1000+stats->totalTicks);
+//	currentThread->setStatus(RUNNINGi);
+   }
     else if ((which == SyscallException) && (type == syscall_CondRemove)) {
        int id = machine->ReadRegister(4);
        machine->WriteRegister(2,0);
@@ -308,7 +316,7 @@ ExceptionHandler(ExceptionType which)
        child->ThreadStackAllocate (ForkStartFunction, 0);	// Make it ready for a later context switch
        child->Schedule ();
        machine->WriteRegister(2, child->GetPID());		// Return value for parent
-       //printf("Fork might be ok\n");
+       printf("Fork might be ok\n");
     }
     else if ((which == SyscallException) && (type == syscall_Yield)) {
        currentThread->YieldCPU();

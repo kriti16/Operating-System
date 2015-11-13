@@ -66,6 +66,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     unsigned int pageFrame;
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    currExecutable=executable;
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
@@ -89,8 +90,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;
-	pageTable[i].physicalPage = i+numPagesAllocated;
-	pageTable[i].valid = TRUE;
+	pageTable[i].physicalPage = i;
+	pageTable[i].valid = FALSE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
         pageTable[i].shared = FALSE;     // this memory is not shared
@@ -102,10 +103,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
 // and the stack segment
     bzero(&machine->mainMemory[numPagesAllocated*PageSize], size);
  
-    numPagesAllocated += numPages;
+   // numPagesAllocated += numPages;
 
 // then, copy in the code and data segments into memory
-    if (noffH.code.size > 0) {
+   /* if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         vpn = noffH.code.virtualAddr/PageSize;
@@ -124,7 +125,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         pageFrame = entry->physicalPage;
         executable->ReadAt(&(machine->mainMemory[pageFrame * PageSize + offset]),
 			noffH.initData.size, noffH.initData.inFileAddr);
-    }
+    }*/
 
 }
 
@@ -141,6 +142,7 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     ASSERT(numPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
                                                                                 // to run anything too big --
                                                                                 // at least until we have
+	currExecutable = parentSpace->currExecutable;
                                                                                 // virtual memory
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
@@ -153,10 +155,18 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
         pageTable[i].virtualPage = i;
         if (parentPageTable[i].shared) 
            pageTable[i].physicalPage = parentPageTable[i].physicalPage;
-        else {
-           pageTable[i].physicalPage = numPagesAllocated;
-           numPagesAllocated++;
+        else if(parentPageTable[i].valid) {
+           for(int j=0;j<NumPhysPages;j++){
+		if(!MainMachinePageTable[j]) {
+           		pageTable[i].physicalPage = j;
+			MainMachinePageTable[j] = TRUE;
+		}
+	   }
+ 
         }
+	else{
+		pageTable[i].physicalPage = i;
+	}
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
@@ -169,17 +179,18 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     // Copy the contents
     unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
     //unsigned startAddrChild = numPagesAllocated*PageSize;
-    for (i=0; i<size; i++) {
+    /*for (i=0; i<size; i++) {
          machine->mainMemory[startAddrChild+i]=machine->mainMemory[startAddrParent+i];
-    }
-    /*for (i=0; i<numPages; i++) {
-       if(!pageTable[i].shared){
+    }*/
+    for (i=0; i<numPages; i++) {
+       if(!pageTable[i].shared && pageTable[i].valid){
           for(int j=0;j<PageSize;j++){
-       	      machine->mainMemory[j+pageTable[i].physicalPage] = machine->mainMemory[j+parentPageTable[i].physicalPage];
+		printf("%d\n",i);
+       	      machine->mainMemory[j+pageTable[i].physicalPage*PageSize] = machine->mainMemory[j+parentPageTable[i].physicalPage*PageSize];
           }   
        }
-    }*/
-
+    }
+	printf("Hi\n");
     //numPagesAllocated += numPages;
 }
 
@@ -200,18 +211,24 @@ AddrSpace::AddShared(int sharedSize)
        newPageTable[i].shared = pageTable[i].shared;
        newPageTable[i].readOnly = pageTable[i].readOnly;
    }
+   int j=0;
    for (int i=numPages;i < numPages + sharedSize ;i++) {
-       newPageTable[i].virtualPage = i;
-       newPageTable[i].physicalPage = i+numPagesAllocated-numPages;
-       newPageTable[i].valid = TRUE;
-       newPageTable[i].use = FALSE;
-       newPageTable[i].dirty = FALSE;
-       newPageTable[i].shared = TRUE;
-       newPageTable[i].readOnly = FALSE;
+       	for(;j<NumPhysPages;j++) 
+		if(!MainMachinePageTable[j])
+			break;
+	newPageTable[i].virtualPage = i;
+       	newPageTable[i].physicalPage = j;
+        newPageTable[i].valid = TRUE;
+	pageFault++;
+        newPageTable[i].use = FALSE;
+        newPageTable[i].dirty = FALSE;
+        newPageTable[i].shared = TRUE;
+        newPageTable[i].readOnly = FALSE;
    }
-   numPagesAllocated +=sharedSize;
-   delete pageTable;
+   //numPagesAllocated +=sharedSize;
+   TranslationEntry* tmp = pageTable;
    pageTable = newPageTable;
+   delete tmp;
    numPages +=sharedSize;
    return pageTable;
 }
@@ -294,4 +311,26 @@ TranslationEntry*
 AddrSpace::GetPageTable()
 {
    return pageTable;
+
+}
+
+void
+AddrSpace::DemandPaging(int virtAddr)
+{
+	if(currExecutable==NULL)
+		printf("virtpage :%d\n",virtAddr);
+	
+	for(int i=0;i<NumPhysPages;i++){
+		if(!MainMachinePageTable[i]){
+			pageTable[virtAddr].physicalPage = i;
+			pageTable[virtAddr].valid = TRUE;
+			MainMachinePageTable[i] = TRUE;
+			NoffHeader noffH;
+			currExecutable->ReadAt((char *)&noffH,sizeof(noffH),0);			
+    			bzero(&machine->mainMemory[i*PageSize], PageSize);
+			currExecutable->ReadAt(&(machine->mainMemory[i*PageSize]),PageSize, noffH.code.inFileAddr + virtAddr*PageSize);
+			pageFault++;
+			break;
+		}
+	}
 }

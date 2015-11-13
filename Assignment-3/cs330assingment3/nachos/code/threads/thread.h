@@ -90,7 +90,7 @@ class NachOSThread {
 					// is called
 
     // basic thread operations
-
+   
     void ThreadFork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void YieldCPU();  				// Relinquish the CPU if any 
 						// other thread is runnable

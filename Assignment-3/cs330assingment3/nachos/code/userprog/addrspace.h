@@ -35,9 +35,10 @@ class AddrSpace {
     void RestoreState();		// info on a context switch
 
     unsigned GetNumPages();
-
+    OpenFile *currExecutable;
     TranslationEntry* GetPageTable();
     TranslationEntry* AddShared(int size);           // for shmAllocate
+    void DemandPaging(int virtAddr);
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation

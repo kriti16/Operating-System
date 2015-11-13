@@ -118,6 +118,10 @@ main(int argc, char **argv)
             currentThread->SetUsage(0);
         } else if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
+	    pageFault=0;
+	    for(int a=0;a<NumPhysPages;a++) {
+		MainMachinePageTable[a]=FALSE;
+	    }
             StartProcess(*(argv + 1));
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
